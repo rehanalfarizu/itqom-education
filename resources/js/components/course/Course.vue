@@ -46,21 +46,21 @@
               <!-- Slide 1 -->
               <div class="swiper-slide">
                 <div class="relative group">
-                  <img src="/public/image/buildwebsite.png" alt="Build Website" class="rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
+                  <img src="/image/buildwebsite.png" alt="Build Website" class="rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
                   <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
               </div>
               <!-- Slide 2 -->
               <div class="swiper-slide">
                 <div class="relative group">
-                  <img src="/public/image/creative.png" alt="Creative Design" class="rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
+                  <img src="/image/creative.png" alt="Creative Design" class="rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
                   <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
               </div>
               <!-- Slide 3 -->
               <div class="swiper-slide">
                 <div class="relative group">
-                  <img src="/public/image/learning-illustration.png" alt="Learning" class="rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
+                  <img src="/image/learning-illustration.png" alt="Learning" class="rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
                   <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
               </div>

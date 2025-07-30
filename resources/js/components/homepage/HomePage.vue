@@ -6,16 +6,16 @@
         <p>Discover the best coding course for your kids. Learn Coding from basic</p>
       </div>
       <div class="homepage-img md:w-1/2 flex justify-center">
-        <img class="homepage-img" src="/public/image/homepage-img.png" alt="HomePage">
+        <img class="homepage-img" src="/image/homepage-img.png" alt="HomePage">
       </div>
     </section>
 
     <div class="partners-section text-center mt-8">
       <p class="text-gray-700 text-lg font-medium mb-6">Dunia Coding telah bekerja sama dengan</p>
       <div class="flex flex-wrap justify-center items-center gap-6 mb-4">
-        <img src="/public/image/maze.png" alt="Maze" class="h-8 md:h-10 max-w-[100px] object-contain">
-        <img src="/public/image/dropbox.png" alt="Dropbox" class="h-8 md:h-10 max-w-[100px] object-contain">
-        <img src="/public/image/webflow.png" alt="Webflow" class="h-8 md:h-10 max-w-[100px] object-contain">
+        <img src="/image/maze.png" alt="Maze" class="h-8 md:h-10 max-w-[100px] object-contain">
+        <img src="/image/dropbox.png" alt="Dropbox" class="h-8 md:h-10 max-w-[100px] object-contain">
+        <img src="/image/webflow.png" alt="Webflow" class="h-8 md:h-10 max-w-[100px] object-contain">
       </div>
       <p class="text-gray-700 text-base">Dan 100+ Tech Company Lainnya</p>
     </div>
@@ -34,7 +34,7 @@
           </p>
         </div>
         <div class="w-full lg:w-1/2 flex justify-center">
-          <img src="/public/image/masking.png" alt="Masking" class="max-w-full h-auto lg:max-w-[80%]">
+          <img src="/image/masking.png" alt="Masking" class="max-w-full h-auto lg:max-w-[80%]">
         </div>
       </div>
     </section>
@@ -112,19 +112,19 @@
                 <div class="swiper-wrapper">
                   <div class="swiper-slide">
                     <div class="relative group">
-                      <img src="/public/image/buildwebsite.png" alt="Build Website" class="slide-image rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
+                      <img src="/image/buildwebsite.png" alt="Build Website" class="slide-image rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
                       <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                   </div>
                   <div class="swiper-slide">
                     <div class="relative group">
-                      <img src="/public/image/creative.png" alt="Creative Design" class="slide-image rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
+                      <img src="/image/creative.png" alt="Creative Design" class="slide-image rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
                       <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                   </div>
                   <div class="swiper-slide">
                     <div class="relative group">
-                      <img src="/public/image/learning-illustration.png" alt="Learning" class="slide-image rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
+                      <img src="/image/learning-illustration.png" alt="Learning" class="slide-image rounded-2xl sm:rounded-3xl w-full h-[250px] sm:h-[300px] object-cover shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
                       <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                   </div>

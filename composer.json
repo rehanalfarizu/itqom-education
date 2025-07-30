@@ -6,7 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "cloudinary/cloudinary_php": "*",
+        "cloudinary/cloudinary_php": "^3.1",
         "fakerphp/faker": "^1.23",
         "filament/filament": "^3.3",
         "filament/widgets": "^3.3",
