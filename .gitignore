@@ -52,3 +52,9 @@ package-lock.json
 .output
 .temp
 .cache
+
+# Di .gitignore, pastikan ini ada:
+/bootstrap/cache/*
+!/bootstrap/cache/.gitkeep
+
+
