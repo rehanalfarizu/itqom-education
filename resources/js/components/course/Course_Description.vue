@@ -560,8 +560,7 @@ async buyCourse() {
       });
     }
   }
-}
-    },
+},
 
     async handlePaymentSuccess(result) {
       console.log('Payment success:', result);
