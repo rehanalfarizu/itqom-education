@@ -1,9 +1,14 @@
 {
     "private": true,
     "type": "module",
+    "engines": {
+        "node": "18.x",
+        "npm": "9.x"
+    },
     "scripts": {
         "dev": "vite",
-        "build": "npm run production",
+        "build": "vite build",
+        "production": "vite build --mode production",
         "heroku-postbuild": "npm run production"
     },
     "devDependencies": {
