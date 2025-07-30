@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
-
+use Midtrans\Config as MidtransConfig;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -22,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
     {
         if ($this->app->environment('production')) {
         URL::forceScheme('https');
+
+        MidtransConfig::$serverKey = config('midtrans.server_key');
+        MidtransConfig::$isProduction = config('midtrans.is_production');
+        MidtransConfig::$isSanitized = true;
+        MidtransConfig::$is3ds = true;
     }
     }
 
