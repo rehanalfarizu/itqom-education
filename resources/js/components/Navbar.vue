@@ -2,7 +2,7 @@
   <header class="bg-[#564AB1] shadow-md fixed top-0 left-0 w-full z-50">
     <div class="container mx-auto flex items-center justify-between px-4 py-3">
       <router-link to="/" class="logo flex items-center">
-        <img src="/public/image/logo.png" alt="Logo" class="h-6" />
+        <img src="/image/logo.png" alt="Logo" class="h-6" />
       </router-link>
 
       <button @click="toggleMenu"
@@ -284,12 +284,12 @@ export default {
       console.log('🔄 Updating display name...');
       console.log('📋 userProfile:', this.userProfile);
       console.log('📋 userName:', this.userName);
-      
+
       // Set display name: prioritas fullname dari profile, fallback ke name dari users
       if (this.userProfile && this.userProfile.fullname) {
         this.displayName = this.userProfile.fullname;
         console.log('✅ Using fullname from profile:', this.userProfile.fullname);
-        
+
         // Update localStorage user data juga
         this.updateLocalStorageUser();
       } else if (this.userProfile && this.userProfile.username) {
@@ -299,7 +299,7 @@ export default {
         this.displayName = this.userName;
         console.log('✅ Using name from users table:', this.userName);
       }
-      
+
       console.log('🎯 Final displayName:', this.displayName);
     },
 
