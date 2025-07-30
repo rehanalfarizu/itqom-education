@@ -40,88 +40,115 @@ public function createSnapToken(Request $request)
             'amount' => 'required|numeric|min:1'
         ]);
 
-        // Handle user ID flexibility
-
-
-// Di PaymentController.php, ganti bagian verifikasi user existence ini:
-
-// VERIFIKASI USER EXISTENCE - LEBIH ROBUST
-$userProfileId = $request->user_profile_id ?? $request->user_id;
-
-if (!$userProfileId) {
-    return response()->json([
-        'success' => false,
-        'error' => 'User ID is required (user_profile_id or user_id)'
-    ], 422);
-}
-
-// CEK APAKAH USER ADA - DENGAN MULTIPLE TABLE CHECK
-$userExists = false;
-$userProfile = null;
-
-// Cek di tabel users_profile terlebih dahulu
-try {
-    $userProfile = DB::table('users_profile')->where('id', $userProfileId)->first();
-    if ($userProfile) {
-        $userExists = true;
-    }
-} catch (\Exception $e) {
-    Log::warning('Table users_profile might not exist', ['error' => $e->getMessage()]);
-}
-
-// Jika tidak ada di users_profile, cek di tabel users
-if (!$userExists) {
-    try {
-        $userProfile = DB::table('users')->where('id', $userProfileId)->first();
-        if ($userProfile) {
-            $userExists = true;
+        // PERBAIKAN UTAMA: RESOLVE USER ID DENGAN BENAR
+        $authUser = $request->user();
+        if (!$authUser) {
+            return response()->json([
+                'success' => false,
+                'error' => 'User not authenticated'
+            ], 401);
         }
-    } catch (\Exception $e) {
-        Log::warning('Table users might not exist', ['error' => $e->getMessage()]);
-    }
-}
 
-// Jika masih tidak ada, cek dengan authentication
-if (!$userExists && $request->user()) {
-    $authUser = $request->user();
-    if ($authUser->id == $userProfileId) {
-        $userExists = true;
-        $userProfile = (object)[
-            'id' => $authUser->id,
-            'fullname' => $authUser->name,
-            'name' => $authUser->name,
-            'email' => $authUser->email,
-            'phone' => $authUser->phone ?? '08123456789'
-        ];
-    }
-}
+        // LOG AUTH USER INFO
+        Log::info('Authenticated user info', [
+            'user_id' => $authUser->id,
+            'user_email' => $authUser->email,
+            'user_name' => $authUser->name ?? $authUser->fullname ?? 'Unknown'
+        ]);
 
-if (!$userExists) {
-    Log::error('User not found in any table', [
-        'user_profile_id' => $userProfileId,
-        'tables_checked' => ['users_profile', 'users', 'authenticated_user']
-    ]);
-    
-    return response()->json([
-        'success' => false,
-        'error' => 'User not found in database',
-        'debug_info' => [
-            'user_id_requested' => $userProfileId,
-            'authenticated_user_id' => $request->user() ? $request->user()->id : null
-        ]
-    ], 404);
-}
+        // CEK APAKAH USER ADA DI TABEL users_profile
+        $userProfileId = null;
+        $userProfile = null;
 
-Log::info('User verification successful', [
-    'user_profile_id' => $userProfileId,
-    'user_found' => true,
-    'user_name' => $userProfile->fullname ?? $userProfile->name ?? 'Unknown'
-]);
+        // STRATEGY 1: Cari berdasarkan authenticated user ID
+        $userProfile = DB::table('users_profile')->where('id', $authUser->id)->first();
+        
+        if ($userProfile) {
+            $userProfileId = $userProfile->id;
+            Log::info('User found in users_profile by auth ID', [
+                'user_profile_id' => $userProfileId,
+                'user_name' => $userProfile->fullname ?? $userProfile->name
+            ]);
+        } else {
+            // STRATEGY 2: Cari berdasarkan email matching
+            $userProfile = DB::table('users_profile')->where('email', $authUser->email)->first();
+            
+            if ($userProfile) {
+                $userProfileId = $userProfile->id;
+                Log::info('User found in users_profile by email', [
+                    'user_profile_id' => $userProfileId,
+                    'auth_user_id' => $authUser->id,
+                    'user_name' => $userProfile->fullname ?? $userProfile->name
+                ]);
+            } else {
+                // STRATEGY 3: CREATE ENTRY IN users_profile if not exists
+                Log::warning('User not found in users_profile, creating entry', [
+                    'auth_user_id' => $authUser->id,
+                    'auth_user_email' => $authUser->email
+                ]);
 
-$courseId = $request->course_id;
-$amount = $request->amount;
+                try {
+                    $userProfileId = DB::table('users_profile')->insertGetId([
+                        'fullname' => $authUser->name ?? $authUser->fullname ?? 'User',
+                        'email' => $authUser->email,
+                        'phone' => $authUser->phone ?? '08123456789',
+                        'address' => $authUser->address ?? '',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
 
-// REST OF THE CODE continues normally...
+                    Log::info('Created new user_profile entry', [
+                        'new_user_profile_id' => $userProfileId,
+                        'auth_user_id' => $authUser->id
+                    ]);
+
+                    // Re-fetch the created profile
+                    $userProfile = DB::table('users_profile')->where('id', $userProfileId)->first();
+
+                } catch (\Exception $createError) {
+                    Log::error('Failed to create user_profile entry', [
+                        'error' => $createError->getMessage(),
+                        'auth_user_id' => $authUser->id
+                    ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Unable to resolve user profile. Please contact support.',
+                        'debug_info' => [
+                            'auth_user_id' => $authUser->id,
+                            'error_type' => 'user_profile_creation_failed'
+                        ]
+                    ], 500);
+                }
+            }
+        }
+
+        // FINAL VALIDATION
+        if (!$userProfileId || !$userProfile) {
+            Log::error('User profile resolution failed completely', [
+                'auth_user_id' => $authUser->id,
+                'auth_user_email' => $authUser->email
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'User profile not found in database',
+                'debug_info' => [
+                    'auth_user_id' => $authUser->id,
+                    'strategies_tried' => ['id_match', 'email_match', 'create_new']
+                ]
+            ], 404);
+        }
+
+        $courseId = $request->course_id;
+        $amount = $request->amount;
+
+        // Log final user info
+        Log::info('User profile resolved successfully', [
+            'user_profile_id' => $userProfileId,
+            'course_id' => $courseId,
+            'amount' => $amount
+        ]);
 
         // ======= VALIDASI PEMBELIAN DUPLIKAT =======
         $existingSuccessfulPayment = DB::table('payments')
@@ -150,7 +177,7 @@ $amount = $request->amount;
             ->where('user_profile_id', $userProfileId)
             ->where('course_id', $courseId)
             ->where('status', 'pending')
-            ->where('created_at', '>', now()->subMinutes(30)) // Changed from 5 seconds to 30 minutes
+            ->where('created_at', '>', now()->subMinutes(30))
             ->first();
 
         if ($existingPendingPayment) {
@@ -170,7 +197,7 @@ $amount = $request->amount;
         }
         // ======= END VALIDASI DUPLIKAT =======
 
-        // Get course data with error handling
+        // Get course data
         $course = DB::table('course_description')->where('id', $courseId)->first();
         if (!$course) {
             return response()->json([
@@ -179,17 +206,13 @@ $amount = $request->amount;
             ], 404);
         }
 
-        // Get user data with fallback
-        $userProfile = DB::table('users_profile')->where('id', $userProfileId)->first() ??
-                      DB::table('users')->where('id', $userProfileId)->first();
-
         // Generate unique order ID
         $orderId = 'ORDER-' . $courseId . '-' . $userProfileId . '-' . uniqid();
 
-        // Save transaction pending to database
+        // Save transaction pending to database - SEKARANG PASTI VALID
         DB::table('payments')->insert([
             'order_id' => $orderId,
-            'user_profile_id' => $userProfileId,
+            'user_profile_id' => $userProfileId, // INI SEKARANG SUDAH PASTI ADA DI users_profile
             'course_id' => $courseId,
             'amount' => $amount,
             'status' => 'pending',
@@ -199,8 +222,15 @@ $amount = $request->amount;
             'updated_at' => now(),
         ]);
 
+        Log::info('Payment record created successfully', [
+            'order_id' => $orderId,
+            'user_profile_id' => $userProfileId,
+            'course_id' => $courseId,
+            'amount' => $amount
+        ]);
+
         // Prepare transaction details for Midtrans
-        $transactionDetails = [
+       $transactionDetails = [
             'order_id' => $orderId,
             'gross_amount' => (int) $amount
         ];
