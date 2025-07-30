@@ -1,0 +1,31 @@
+{
+  "_bootstrap-l0sNRNKZ.js": {
+    "file": "assets/bootstrap-l0sNRNKZ.js",
+    "name": "bootstrap"
+  },
+  "_sweetalert-l0sNRNKZ.js": {
+    "file": "assets/sweetalert-l0sNRNKZ.js",
+    "name": "sweetalert"
+  },
+  "_swiper-CXXVu74p.js": {
+    "file": "assets/swiper-CXXVu74p.js",
+    "name": "swiper"
+  },
+  "_vendor-DdztRvBY.js": {
+    "file": "assets/vendor-DdztRvBY.js",
+    "name": "vendor"
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-BGEmdnOw.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "_vendor-DdztRvBY.js",
+      "_swiper-CXXVu74p.js"
+    ],
+    "css": [
+      "assets/app-C59b7eUh.css"
+    ]
+  }
+}

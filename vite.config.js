@@ -1,14 +1,12 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
-import path from 'path';
 
 export default defineConfig({
   assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg'],
   resolve: {
     alias: {
       'vue': 'vue/dist/vue.esm-bundler.js',
-      '@': path.resolve(__dirname, 'resources/js'),
     },
   },
   plugins: [
@@ -42,8 +40,8 @@ export default defineConfig({
         }
       }
     },
-    sourcemap: false, // Disable sourcemap for production
-    minify: 'terser', // Better minification
+    sourcemap: false,
+    minify: 'esbuild',
     chunkSizeWarningLimit: 1000
   },
   server: {
