@@ -97,16 +97,12 @@ class PaymentController extends Controller
             $orderId = 'ORDER-' . $courseId . '-' . $userProfileId . '-' . uniqid();
 
             // Save transaction pending to database
-            DB::table('payments')->insert([
+            Payment::create([
                 'order_id' => $orderId,
                 'user_profile_id' => $userProfileId,
                 'course_id' => $courseId,
                 'amount' => $amount,
                 'status' => 'pending',
-                'transaction_id' => null,
-                'payment_type' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
 
             // Prepare transaction details for Midtrans
