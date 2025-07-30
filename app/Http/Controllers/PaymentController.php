@@ -41,28 +41,87 @@ public function createSnapToken(Request $request)
         ]);
 
         // Handle user ID flexibility
-        $userProfileId = $request->user_profile_id ?? $request->user_id;
 
-        if (!$userProfileId) {
-            return response()->json([
-                'success' => false,
-                'error' => 'User ID is required (user_profile_id or user_id)'
-            ], 422);
+
+// Di PaymentController.php, ganti bagian verifikasi user existence ini:
+
+// VERIFIKASI USER EXISTENCE - LEBIH ROBUST
+$userProfileId = $request->user_profile_id ?? $request->user_id;
+
+if (!$userProfileId) {
+    return response()->json([
+        'success' => false,
+        'error' => 'User ID is required (user_profile_id or user_id)'
+    ], 422);
+}
+
+// CEK APAKAH USER ADA - DENGAN MULTIPLE TABLE CHECK
+$userExists = false;
+$userProfile = null;
+
+// Cek di tabel users_profile terlebih dahulu
+try {
+    $userProfile = DB::table('users_profile')->where('id', $userProfileId)->first();
+    if ($userProfile) {
+        $userExists = true;
+    }
+} catch (\Exception $e) {
+    Log::warning('Table users_profile might not exist', ['error' => $e->getMessage()]);
+}
+
+// Jika tidak ada di users_profile, cek di tabel users
+if (!$userExists) {
+    try {
+        $userProfile = DB::table('users')->where('id', $userProfileId)->first();
+        if ($userProfile) {
+            $userExists = true;
         }
+    } catch (\Exception $e) {
+        Log::warning('Table users might not exist', ['error' => $e->getMessage()]);
+    }
+}
 
-        // Verify user exists
-        $userExists = DB::table('users_profile')->where('id', $userProfileId)->exists() ||
-                     DB::table('users')->where('id', $userProfileId)->exists();
+// Jika masih tidak ada, cek dengan authentication
+if (!$userExists && $request->user()) {
+    $authUser = $request->user();
+    if ($authUser->id == $userProfileId) {
+        $userExists = true;
+        $userProfile = (object)[
+            'id' => $authUser->id,
+            'fullname' => $authUser->name,
+            'name' => $authUser->name,
+            'email' => $authUser->email,
+            'phone' => $authUser->phone ?? '08123456789'
+        ];
+    }
+}
 
-        if (!$userExists) {
-            return response()->json([
-                'success' => false,
-                'error' => 'User not found'
-            ], 404);
-        }
+if (!$userExists) {
+    Log::error('User not found in any table', [
+        'user_profile_id' => $userProfileId,
+        'tables_checked' => ['users_profile', 'users', 'authenticated_user']
+    ]);
+    
+    return response()->json([
+        'success' => false,
+        'error' => 'User not found in database',
+        'debug_info' => [
+            'user_id_requested' => $userProfileId,
+            'authenticated_user_id' => $request->user() ? $request->user()->id : null
+        ]
+    ], 404);
+}
 
-        $courseId = $request->course_id;
-        $amount = $request->amount;
+Log::info('User verification successful', [
+    'user_profile_id' => $userProfileId,
+    'user_found' => true,
+    'user_name' => $userProfile->fullname ?? $userProfile->name ?? 'Unknown'
+]);
+
+$courseId = $request->course_id;
+$amount = $request->amount;
+
+// REST OF THE CODE continues normally...
 
         // ======= VALIDASI PEMBELIAN DUPLIKAT =======
         $existingSuccessfulPayment = DB::table('payments')

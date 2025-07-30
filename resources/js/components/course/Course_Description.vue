@@ -331,49 +331,76 @@ export default {
       }
     },
 
-    async checkUserProfile() {
-      try {
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-          console.log('No token found');
-          this.userProfile = null;
-          return;
+async checkUserProfile() {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      console.log('No token found');
+      this.userProfile = null;
+      return;
+    }
+
+    console.log('Token:', token.substring(0, 30) + '...');
+
+    // TRY MULTIPLE ENDPOINTS FOR USER PROFILE
+    let response = null;
+    
+    // Try /api/user first (Sanctum default)
+    try {
+      response = await axios.get('/api/user', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         }
-
-        console.log('Token:', token.substring(0, 30) + '...');
-
-        const response = await axios.get('/api/profile', {
+      });
+      console.log('User data from /api/user:', response.data);
+    } catch (userError) {
+      console.warn('Failed to get user from /api/user:', userError.response?.status);
+      
+      // Fallback to /api/profile
+      try {
+        response = await axios.get('/api/profile', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
           }
         });
-
-        console.log('Profile response:', response.data);
-
-        if (response.data && response.data.user) {
-          this.userProfile = {
-            id: response.data.user.id,
-            name: response.data.user.name,
-            email: response.data.user.email,
-          };
-
-          // Check if user already purchased this course
-          await this.checkCoursePurchase();
-        } else {
-          console.error('Invalid profile response structure');
-          this.userProfile = null;
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-
-        if (error.response?.status === 401) {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-          this.userProfile = null;
-        }
+        console.log('User data from /api/profile:', response.data);
+      } catch (profileError) {
+        console.error('Failed to get user from both endpoints');
+        throw profileError;
       }
-    },
+    }
+
+    if (response && response.data) {
+      // Handle different response structures
+      const userData = response.data.user || response.data;
+      
+      this.userProfile = {
+        id: userData.id,
+        name: userData.fullname || userData.name,
+        email: userData.email,
+      };
+
+      console.log('User profile set:', this.userProfile);
+
+      // Check if user already purchased this course
+      await this.checkCoursePurchase();
+    } else {
+      console.error('Invalid profile response structure');
+      this.userProfile = null;
+    }
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+
+    if (error.response?.status === 401) {
+      console.log('Token expired, clearing auth data');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      this.userProfile = null;
+    }
+  }
+},
 
     // NEW METHOD: Check course purchase using dedicated endpoint
     async checkCoursePurchase() {
@@ -438,85 +465,102 @@ export default {
       });
     },
 
-    async buyCourse() {
-      // Check if user is logged in
-      if (!this.userProfile) {
-        await this.checkUserProfile();
-      }
+async buyCourse() {
+  // Check if user is logged in
+  if (!this.userProfile) {
+    await this.checkUserProfile();
+  }
 
-      if (!this.userProfile) {
-        this.showError('Anda harus login terlebih dahulu untuk membeli kursus');
-        setTimeout(() => {
-          this.$router.push('/login');
-        }, 2000);
-        return;
-      }
+  if (!this.userProfile) {
+    this.showError('Anda harus login terlebih dahulu untuk membeli kursus');
+    setTimeout(() => {
+      this.$router.push('/login');
+    }, 2000);
+    return;
+  }
 
-      // Double check if user already purchased
-      if (this.hasPurchased) {
-        this.showError('Anda sudah membeli kursus ini sebelumnya. Silakan langsung mulai belajar.');
-        return;
-      }
+  // Double check if user already purchased
+  if (this.hasPurchased) {
+    this.showError('Anda sudah membeli kursus ini sebelumnya. Silakan langsung mulai belajar.');
+    return;
+  }
 
-      this.paymentLoading = true;
-      this.pendingPaymentWarning = null;
+  this.paymentLoading = true;
+  this.pendingPaymentWarning = null;
 
-      try {
-        const token = localStorage.getItem('authToken');
-        const response = await axios.post(
-          'https://itqom-platform-aa0ffce6a276.herokuapp.com/api/payment/create-snap-token',
-          {
-            course_id: this.courseData.id,
-            user_profile_id: this.userProfile.id,
-            amount: this.courseData.price
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
+  try {
+    const token = localStorage.getItem('authToken');
+    
+    // Prepare payment data with both user_id and user_profile_id for compatibility
+    const paymentData = {
+      course_id: this.courseData.id,
+      user_profile_id: this.userProfile.id,
+      user_id: this.userProfile.id, // Send both for backend compatibility
+      amount: this.courseData.price
+    };
 
-        if (response.data.success && response.data.snap_token) {
-          window.snap.pay(response.data.snap_token, {
-            onSuccess: (result) => this.handlePaymentSuccess(result),
-            onPending: (result) => this.handlePaymentPending(result),
-            onError: (error) => this.handlePaymentError(error),
-            onClose: () => {
-              console.log('Payment dialog closed');
-              this.paymentLoading = false;
-            }
-          });
-        } else {
-          throw new Error(response.data.error || 'Failed to create payment token');
-        }
-      } catch (error) {
-        console.error('Payment error:', error);
-        this.paymentLoading = false;
+    console.log('Creating payment with data:', paymentData);
 
-        if (error.response?.status === 401) {
-          this.showError('Sesi Anda telah habis. Silakan login kembali.');
-          setTimeout(() => {
-            localStorage.removeItem('authToken');
-            this.$router.push('/login');
-          }, 2000);
-        } else if (error.response?.data?.error_code === 'DUPLICATE_PURCHASE') {
-          // Handle duplicate purchase error
-          this.showError('Anda sudah membeli kursus ini sebelumnya. Silakan refresh halaman untuk melihat status terbaru.');
-          // Refresh purchase status
-          setTimeout(async () => {
-            await this.checkCoursePurchase();
-          }, 1000);
-        } else if (error.response?.data?.error_code === 'PENDING_PAYMENT_EXISTS') {
-          // Handle pending payment exists
-          this.pendingPaymentWarning = error.response.data.error;
-          this.showError('Anda masih memiliki pembayaran yang sedang diproses untuk kursus ini.');
-        } else {
-          this.showError('Terjadi kesalahan saat memproses pembayaran: ' +
-            (error.response?.data?.error || error.message));
+    const response = await axios.post(
+      'https://itqom-platform-aa0ffce6a276.herokuapp.com/api/payment/create-snap-token',
+      paymentData,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       }
+    );
+
+    if (response.data.success && response.data.snap_token) {
+      window.snap.pay(response.data.snap_token, {
+        onSuccess: (result) => this.handlePaymentSuccess(result),
+        onPending: (result) => this.handlePaymentPending(result),
+        onError: (error) => this.handlePaymentError(error),
+        onClose: () => {
+          console.log('Payment dialog closed');
+          this.paymentLoading = false;
+        }
+      });
+    } else {
+      throw new Error(response.data.error || 'Failed to create payment token');
+    }
+  } catch (error) {
+    console.error('Payment error:', error);
+    this.paymentLoading = false;
+
+    // Enhanced error handling
+    if (error.response?.status === 401) {
+      this.showError('Sesi Anda telah habis. Silakan login kembali.');
+      setTimeout(() => {
+        localStorage.removeItem('authToken');
+        this.$router.push('/login');
+      }, 2000);
+    } else if (error.response?.status === 404) {
+      this.showError('User tidak ditemukan di database. Silakan logout dan login kembali.');
+    } else if (error.response?.data?.error_code === 'DUPLICATE_PURCHASE') {
+      this.showError('Anda sudah membeli kursus ini sebelumnya. Silakan refresh halaman untuk melihat status terbaru.');
+      setTimeout(async () => {
+        await this.checkCoursePurchase();
+      }, 1000);
+    } else if (error.response?.data?.error_code === 'PENDING_PAYMENT_EXISTS') {
+      this.pendingPaymentWarning = error.response.data.error;
+      this.showError('Anda masih memiliki pembayaran yang sedang diproses untuk kursus ini.');
+    } else {
+      const errorMsg = error.response?.data?.error || 
+                      error.response?.data?.message || 
+                      error.message;
+      this.showError('Terjadi kesalahan saat memproses pembayaran: ' + errorMsg);
+      
+      // Log debug info for troubleshooting
+      console.error('Payment error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        user_profile: this.userProfile
+      });
+    }
+  }
+}
     },
 
     async handlePaymentSuccess(result) {
