@@ -679,7 +679,7 @@ export default {
             try {
                 console.log(`📊 Loading progress for course ${courseId}...`);
 
-                const response = await axios.get(`http://localhost:8000/api/course-content/course/${courseId}`);
+                const response = await axios.get(`https://itqom-platform-aa0ffce6a276.herokuapp.com/api/course-content/course/${courseId}`);
 
                 if (response.data.success) {
                     const courseData = response.data.data;
@@ -776,7 +776,7 @@ export default {
         // ===== SETUP AXIOS =====
         setupAxios() {
             if (!axios.defaults.baseURL) {
-                axios.defaults.baseURL = 'http://localhost:8000';
+                axios.defaults.baseURL = 'https://itqom-platform-aa0ffce6a276.herokuapp.com';
             }
 
             axios.defaults.headers.common['Accept'] = 'application/json';

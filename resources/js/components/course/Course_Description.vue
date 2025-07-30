@@ -298,7 +298,7 @@ export default {
 
       try {
         console.log(`Fetching course data for ID: ${this.courseId}`);
-        const response = await axios.get(`http://localhost:8000/api/courses/${this.courseId}`);
+        const response = await axios.get(`https://itqom-platform-aa0ffce6a276.herokuapp.com/api/courses/${this.courseId}`);
         console.log('Course data response:', response.data);
 
         if (response.status !== 200) {
@@ -383,7 +383,7 @@ export default {
       }
 
       try {
-        const response = await axios.post('http://localhost:8000/api/payment/check-course-purchase', {
+        const response = await axios.post('https://itqom-platform-aa0ffce6a276.herokuapp.com/api/payment/check-course-purchase', {
           user_profile_id: this.userProfile.id,
           course_id: this.courseData.id
         }, {
@@ -464,7 +464,7 @@ export default {
       try {
         const token = localStorage.getItem('authToken');
         const response = await axios.post(
-          'http://localhost:8000/api/payment/create-snap-token',
+          'https://itqom-platform-aa0ffce6a276.herokuapp.com/api/payment/create-snap-token',
           {
             course_id: this.courseData.id,
             user_profile_id: this.userProfile.id,
@@ -526,7 +526,7 @@ export default {
       try {
         // Manual check payment status dari Midtrans
         const statusResponse = await axios.get(
-          `http://localhost:8000/api/payment/status/${result.order_id}`,
+          `https://itqom-platform-aa0ffce6a276.herokuapp.com/api/payment/status/${result.order_id}`,
           {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('authToken')}`
@@ -572,7 +572,7 @@ export default {
     async checkPaymentStatus(orderId) {
       try {
         const response = await axios.get(
-          `http://localhost:8000/api/payment/status/${orderId}`,
+          `https://itqom-platform-aa0ffce6a276.herokuapp.com/api/payment/status/${orderId}`,
           {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('authToken')}`

@@ -298,7 +298,7 @@ export default {
     async fetchCourses() {
       try {
         this.loading = true;
-        const response = await axios.get('http://localhost:8000/api/courses');
+        const response = await axios.get('https://itqom-platform-aa0ffce6a276.herokuapp.com/api/courses');
         this.courses = response.data;
       } catch (error) {
         console.error('Gagal mengambil data kursus:', error);

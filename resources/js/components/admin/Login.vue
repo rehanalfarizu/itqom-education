@@ -72,7 +72,7 @@ export default {
         return;
       }
       try {
-        const response = await axios.post('http://localhost:8000/api/login', {
+        const response = await axios.post('https://itqom-platform-aa0ffce6a276.herokuapp.com/api/login', {
           email: this.email,
           password: this.password
         });

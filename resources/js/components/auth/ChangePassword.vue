@@ -139,7 +139,7 @@ export default {
       try {
         const token = localStorage.getItem('authToken');
         await axios.post(
-          'http://localhost:8000/api/profile/change-password',
+          'https://itqom-platform-aa0ffce6a276.herokuapp.com/api/profile/change-password',
           {
             current_password: this.currentPassword,
             new_password: this.newPassword,

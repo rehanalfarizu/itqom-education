@@ -141,7 +141,7 @@ export default {
       try {
         this.loading = true;
 
-        const response = await axios.get(`http://localhost:8000/api/payment/status/${this.orderId}`, {
+        const response = await axios.get(`https://itqom-platform-aa0ffce6a276.herokuapp.com/api/payment/status/${this.orderId}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
           }

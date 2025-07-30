@@ -256,7 +256,7 @@ export default {
       this.isLoading = true;
 
       try {
-        const response = await axios.post('http://localhost:8000/api/register', this.form);
+        const response = await axios.post('https://itqom-platform-aa0ffce6a276.herokuapp.com/api/register', this.form);
 
         // 1. Ambil token dan data user dari respons
         const token = response.data.token;

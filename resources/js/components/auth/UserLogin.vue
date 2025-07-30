@@ -184,7 +184,7 @@ export default {
       this.isLoading = true;
 
       try {
-        const response = await axios.post('http://localhost:8000/api/login', this.form);
+        const response = await axios.post('https://itqom-platform-aa0ffce6a276.herokuapp.com/api/login', this.form);
 
         // Simpan token dan data user
         localStorage.setItem('authToken', response.data.token);

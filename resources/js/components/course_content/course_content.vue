@@ -281,7 +281,7 @@ export default {
         console.log('🔍 Loading course content for ID:', this.courseDescriptionId);
 
         // Use the enhanced API endpoint
-        const response = await axios.get(`http://localhost:8000/api/course-content/course/${this.courseDescriptionId}`);
+        const response = await axios.get(`https://itqom-platform-aa0ffce6a276.herokuapp.com/api/course-content/course/${this.courseDescriptionId}`);
 
         console.log('📡 Course content response:', response.data);
 
