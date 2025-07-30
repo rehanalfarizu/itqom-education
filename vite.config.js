@@ -24,13 +24,13 @@ export default defineConfig({
     }),
   ],
   build: {
-    manifest: true,
+    manifest: 'manifest.json', // Specify manifest filename explicitly
     outDir: 'public/build',
     emptyOutDir: true,
+    // PENTING: Hapus rollupOptions.input karena conflict dengan laravel plugin
+    // Laravel Vite Plugin sudah handle input configuration
     rollupOptions: {
-      input: {
-        app: 'resources/js/app.js'
-      },
+      // Hanya gunakan output configuration
       output: {
         manualChunks: {
           vendor: ['vue', 'vue-router'],

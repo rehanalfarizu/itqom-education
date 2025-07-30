@@ -11,17 +11,23 @@
     "file": "assets/swiper-CXXVu74p.js",
     "name": "swiper"
   },
-  "_vendor-DdztRvBY.js": {
-    "file": "assets/vendor-DdztRvBY.js",
+  "_vendor-GpeZjnWS.js": {
+    "file": "assets/vendor-GpeZjnWS.js",
     "name": "vendor"
   },
+  "resources/css/app.css": {
+    "file": "assets/app-l0sNRNKZ.js",
+    "name": "app",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
   "resources/js/app.js": {
-    "file": "assets/app-BGEmdnOw.js",
+    "file": "assets/app-BPPT10al.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
-      "_vendor-DdztRvBY.js",
+      "_vendor-GpeZjnWS.js",
       "_swiper-CXXVu74p.js"
     ],
     "css": [
