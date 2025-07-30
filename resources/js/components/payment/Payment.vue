@@ -41,7 +41,7 @@
         </div>
         <h2 class="text-2xl font-bold text-gray-800">Pembayaran Gagal</h2>
         <p class="text-gray-600">Maaf, pembayaran Anda tidak dapat diproses.</p>
-        <p class="text-sm text-gray-500">Silakan coba lagi atau hubungi customer service.</p>
+        <p class="text-sm text-gray-500 mb-2">{{ errorMessage || 'Silakan coba lagi atau hubungi customer service.' }}</p>
 
         <div class="space-y-3 pt-4">
           <button @click="retryPayment"
@@ -88,6 +88,7 @@
         </div>
         <h2 class="text-2xl font-bold text-gray-800">Status Tidak Diketahui</h2>
         <p class="text-gray-600">Tidak dapat menentukan status pembayaran.</p>
+        <p class="text-sm text-red-500" v-if="errorMessage">{{ errorMessage }}</p>
 
         <div class="space-y-3 pt-4">
           <button @click="checkStatus"
@@ -116,17 +117,21 @@ export default {
       paymentStatus: null,
       orderId: null,
       courseId: null,
-      checkingStatus: false
+      checkingStatus: false,
+      errorMessage: null
     };
   },
   async mounted() {
-    // Get order_id from URL params
+    // Get parameters from URL
     this.orderId = this.$route.query.order_id;
+    this.courseId = this.$route.query.course_id;
     const resultType = this.$route.query.result;
 
     console.log('Payment result page loaded', {
       orderId: this.orderId,
-      resultType: resultType
+      courseId: this.courseId,
+      resultType: resultType,
+      query: this.$route.query
     });
 
     if (this.orderId) {
@@ -134,51 +139,85 @@ export default {
     } else {
       this.loading = false;
       this.paymentStatus = 'unknown';
+      this.errorMessage = 'Order ID tidak ditemukan';
     }
   },
   methods: {
     async checkPaymentStatus() {
       try {
         this.loading = true;
+        this.errorMessage = null;
 
-        // Use relative URL instead of full heroku URL
+        // Get auth token
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+          throw new Error('Token autentikasi tidak ditemukan');
+        }
+
+        console.log('Checking payment status for order:', this.orderId);
+
+        // Call the correct API endpoint with proper error handling
         const response = await axios.get(`/api/payment/status/${this.orderId}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json'
-          }
+          },
+          timeout: 30000 // 30 second timeout
         });
 
         console.log('Payment status response:', response.data);
 
-        // Handle different response structures
-        if (response.data.success !== undefined) {
-          this.paymentStatus = response.data.success ? response.data.status : 'failed';
-          this.courseId = response.data.course_id;
-        } else if (response.data.payment_status) {
-          this.paymentStatus = response.data.payment_status;
-          this.courseId = response.data.course_id;
+        // Parse response - handle different response structures
+        if (response.data) {
+          // Extract payment status from different possible response formats
+          this.paymentStatus = response.data.payment_status || 
+                              response.data.status || 
+                              (response.data.success ? 'success' : 'failed');
+          
+          // Extract course ID if available
+          this.courseId = this.courseId || response.data.course_id;
+          
+          // Check for error messages
+          if (response.data.error) {
+            this.errorMessage = response.data.error;
+          }
         } else {
           this.paymentStatus = 'unknown';
+          this.errorMessage = 'Response data tidak valid';
         }
 
       } catch (error) {
         console.error('Error checking payment status:', error);
 
-        // Handle different error types
+        // Handle different error types with better error messages
         if (error.response) {
           console.error('Response error:', error.response.data);
-          if (error.response.status === 404) {
+          
+          const status = error.response.status;
+          const data = error.response.data;
+          
+          if (status === 404) {
             this.paymentStatus = 'not_found';
+            this.errorMessage = 'Pembayaran tidak ditemukan';
+          } else if (status === 401) {
+            this.paymentStatus = 'unauthorized';
+            this.errorMessage = 'Sesi telah berakhir, silakan login kembali';
+          } else if (status === 500) {
+            this.paymentStatus = 'server_error';
+            this.errorMessage = data.message || data.error || 'Terjadi kesalahan server';
           } else {
             this.paymentStatus = 'error';
+            this.errorMessage = data.message || data.error || `Error ${status}`;
           }
         } else if (error.request) {
           console.error('Network error:', error.request);
           this.paymentStatus = 'network_error';
+          this.errorMessage = 'Tidak dapat terhubung ke server';
         } else {
+          console.error('Unknown error:', error.message);
           this.paymentStatus = 'unknown_error';
+          this.errorMessage = error.message || 'Terjadi kesalahan tidak diketahui';
         }
       } finally {
         this.loading = false;
@@ -198,6 +237,8 @@ export default {
     goToCourse() {
       if (this.courseId) {
         this.$router.push(`/course/${this.courseId}/learn`);
+      } else {
+        this.$router.push('/my-courses');
       }
     },
 
