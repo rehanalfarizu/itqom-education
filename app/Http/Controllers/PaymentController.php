@@ -28,154 +28,198 @@ class PaymentController extends Controller
     /**
      * Create Snap Token for payment - DENGAN VALIDASI DUPLIKAT
      */
-    public function createSnapToken(Request $request)
-    {
-        try {
-            // Validate request
-            $request->validate([
-                'course_id' => 'required|exists:course_description,id',
-                'user_profile_id' => 'required|exists:users_profile,id',
-                'amount' => 'required|numeric|min:1'
-            ]);
+public function createSnapToken(Request $request)
+{
+    try {
+        // Log request data untuk debugging
+        Log::info('Payment request received', $request->all());
 
-            $courseId = $request->course_id;
-            $userProfileId = $request->user_profile_id;
-            $amount = $request->amount;
+        // Flexible validation - accept both user_id and user_profile_id
+        $request->validate([
+            'course_id' => 'required|exists:course_description,id',
+            'amount' => 'required|numeric|min:1'
+        ]);
 
-            // ======= VALIDASI PEMBELIAN DUPLIKAT =======
-            $existingSuccessfulPayment = DB::table('payments')
-                ->where('user_profile_id', $userProfileId)
-                ->where('course_id', $courseId)
-                ->where('status', 'success')
-                ->first();
+        // Handle user ID flexibility
+        $userProfileId = $request->user_profile_id ?? $request->user_id;
 
-            if ($existingSuccessfulPayment) {
-                Log::warning('Attempted duplicate course purchase', [
-                    'user_profile_id' => $userProfileId,
-                    'course_id' => $courseId,
-                    'existing_order_id' => $existingSuccessfulPayment->order_id
-                ]);
+        if (!$userProfileId) {
+            return response()->json([
+                'success' => false,
+                'error' => 'User ID is required (user_profile_id or user_id)'
+            ], 422);
+        }
 
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Anda sudah membeli kursus ini sebelumnya.',
-                    'message' => 'Course sudah dibeli',
-                    'error_code' => 'DUPLICATE_PURCHASE'
-                ], 400);
-            }
+        // Verify user exists
+        $userExists = DB::table('users_profile')->where('id', $userProfileId)->exists() ||
+                     DB::table('users')->where('id', $userProfileId)->exists();
 
-            // Cek juga apakah ada pembayaran pending untuk course yang sama
-            $existingPendingPayment = DB::table('payments')
-                ->where('user_profile_id', $userProfileId)
-                ->where('course_id', $courseId)
-                ->where('status', 'pending')
-                ->where('created_at', '>', now()->subSeconds(5)) // Hanya cek pending yang dibuat dalam 30 menit terakhir
-                ->first();
+        if (!$userExists) {
+            return response()->json([
+                'success' => false,
+                'error' => 'User not found'
+            ], 404);
+        }
 
-            if ($existingPendingPayment) {
-                Log::warning('Attempted purchase while pending payment exists', [
-                    'user_profile_id' => $userProfileId,
-                    'course_id' => $courseId,
-                    'pending_order_id' => $existingPendingPayment->order_id
-                ]);
+        $courseId = $request->course_id;
+        $amount = $request->amount;
 
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Anda masih memiliki pembayaran yang sedang diproses untuk kursus ini. Silakan selesaikan pembayaran sebelumnya atau tunggu beberapa saat.',
-                    'message' => 'Pembayaran pending masih ada',
-                    'error_code' => 'PENDING_PAYMENT_EXISTS',
-                    'pending_order_id' => $existingPendingPayment->order_id
-                ], 400);
-            }
-            // ======= END VALIDASI DUPLIKAT =======
+        // ======= VALIDASI PEMBELIAN DUPLIKAT =======
+        $existingSuccessfulPayment = DB::table('payments')
+            ->where('user_profile_id', $userProfileId)
+            ->where('course_id', $courseId)
+            ->where('status', 'success')
+            ->first();
 
-            // Get course data
-            $course = CourseDescriptions::findOrFail($courseId);
-            $userProfile = UserProfile::findOrFail($userProfileId);
-
-            // Generate unique order ID
-            $orderId = 'ORDER-' . $courseId . '-' . $userProfileId . '-' . uniqid();
-
-            // Save transaction pending to database
-            DB::table('payments')->insert([
-                'order_id' => $orderId,
+        if ($existingSuccessfulPayment) {
+            Log::warning('Attempted duplicate course purchase', [
                 'user_profile_id' => $userProfileId,
                 'course_id' => $courseId,
-                'amount' => $amount,
-                'status' => 'pending',
-                'transaction_id' => null,
-                'payment_type' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            // Prepare transaction details for Midtrans
-            $transactionDetails = [
-                'order_id' => $orderId,
-                'gross_amount' => (int) $amount
-            ];
-
-            $itemDetails = [
-                [
-                    'id' => $courseId,
-                    'price' => (int) $amount,
-                    'quantity' => 1,
-                    'name' => $course->title ?? 'Course',
-                    'category' => 'Education'
-                ]
-            ];
-
-            $customerDetails = [
-                'first_name' => $userProfile->fullname ?? 'Customer',
-                'email' => $userProfile->email,
-                'phone' => $userProfile->phone ?? '08123456789'
-            ];
-
-            // Prepare transaction array
-            $transactionArray = [
-                'transaction_details' => $transactionDetails,
-                'item_details' => $itemDetails,
-                'customer_details' => $customerDetails,
-                'enabled_payments' => [
-                    'gopay', 'bank_transfer', 'credit_card', 'cstore', 'bca_va',
-                    'bni_va', 'bri_va', 'other_va', 'qris'
-                ],
-                'callbacks' => [
-                    'finish' => url('/payment/finish'),
-                    'unfinish' => url('/payment/unfinish'),
-                    'error' => url('/payment/error')
-                ]
-            ];
-
-            Log::info('Creating Midtrans transaction', [
-                'order_id' => $orderId,
-                'amount' => $amount,
-                'user_profile_id' => $userProfileId,
-                'course_id' => $courseId
-            ]);
-
-            // Create snap token
-            $snapToken = \Midtrans\Snap::getSnapToken($transactionArray);
-
-            return response()->json([
-                'success' => true,
-                'snap_token' => $snapToken,
-                'order_id' => $orderId,
-                'message' => 'Snap token created successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error creating snap token', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'existing_order_id' => $existingSuccessfulPayment->order_id
             ]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Failed to create payment token: ' . $e->getMessage()
-            ], 500);
+                'error' => 'Anda sudah membeli kursus ini sebelumnya.',
+                'message' => 'Course sudah dibeli',
+                'error_code' => 'DUPLICATE_PURCHASE'
+            ], 400);
         }
+
+        // Cek juga apakah ada pembayaran pending untuk course yang sama
+        $existingPendingPayment = DB::table('payments')
+            ->where('user_profile_id', $userProfileId)
+            ->where('course_id', $courseId)
+            ->where('status', 'pending')
+            ->where('created_at', '>', now()->subMinutes(30)) // Changed from 5 seconds to 30 minutes
+            ->first();
+
+        if ($existingPendingPayment) {
+            Log::warning('Attempted purchase while pending payment exists', [
+                'user_profile_id' => $userProfileId,
+                'course_id' => $courseId,
+                'pending_order_id' => $existingPendingPayment->order_id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Anda masih memiliki pembayaran yang sedang diproses untuk kursus ini. Silakan selesaikan pembayaran sebelumnya atau tunggu beberapa saat.',
+                'message' => 'Pembayaran pending masih ada',
+                'error_code' => 'PENDING_PAYMENT_EXISTS',
+                'pending_order_id' => $existingPendingPayment->order_id
+            ], 400);
+        }
+        // ======= END VALIDASI DUPLIKAT =======
+
+        // Get course data with error handling
+        $course = DB::table('course_description')->where('id', $courseId)->first();
+        if (!$course) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Course not found'
+            ], 404);
+        }
+
+        // Get user data with fallback
+        $userProfile = DB::table('users_profile')->where('id', $userProfileId)->first() ??
+                      DB::table('users')->where('id', $userProfileId)->first();
+
+        // Generate unique order ID
+        $orderId = 'ORDER-' . $courseId . '-' . $userProfileId . '-' . uniqid();
+
+        // Save transaction pending to database
+        DB::table('payments')->insert([
+            'order_id' => $orderId,
+            'user_profile_id' => $userProfileId,
+            'course_id' => $courseId,
+            'amount' => $amount,
+            'status' => 'pending',
+            'transaction_id' => null,
+            'payment_type' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Prepare transaction details for Midtrans
+        $transactionDetails = [
+            'order_id' => $orderId,
+            'gross_amount' => (int) $amount
+        ];
+
+        $itemDetails = [
+            [
+                'id' => $courseId,
+                'price' => (int) $amount,
+                'quantity' => 1,
+                'name' => $course->title ?? 'Course',
+                'category' => 'Education'
+            ]
+        ];
+
+        $customerDetails = [
+            'first_name' => $userProfile->fullname ?? $userProfile->name ?? 'Customer',
+            'email' => $userProfile->email ?? 'customer@example.com',
+            'phone' => $userProfile->phone ?? '08123456789'
+        ];
+
+        // Prepare transaction array
+        $transactionArray = [
+            'transaction_details' => $transactionDetails,
+            'item_details' => $itemDetails,
+            'customer_details' => $customerDetails,
+            'enabled_payments' => [
+                'gopay', 'bank_transfer', 'credit_card', 'cstore', 'bca_va',
+                'bni_va', 'bri_va', 'other_va', 'qris'
+            ],
+            'callbacks' => [
+                'finish' => url('/payment/finish'),
+                'unfinish' => url('/payment/unfinish'),
+                'error' => url('/payment/error')
+            ]
+        ];
+
+        Log::info('Creating Midtrans transaction', [
+            'order_id' => $orderId,
+            'amount' => $amount,
+            'user_profile_id' => $userProfileId,
+            'course_id' => $courseId
+        ]);
+
+        // Create snap token
+        $snapToken = \Midtrans\Snap::getSnapToken($transactionArray);
+
+        return response()->json([
+            'success' => true,
+            'snap_token' => $snapToken,
+            'order_id' => $orderId,
+            'message' => 'Snap token created successfully'
+        ]);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        Log::error('Validation error in payment', [
+            'errors' => $e->errors(),
+            'request_data' => $request->all()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'error' => 'Validation failed',
+            'messages' => $e->errors()
+        ], 422);
+
+    } catch (\Exception $e) {
+        Log::error('Error creating snap token', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'request_data' => $request->all()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'error' => 'Failed to create payment token: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * Handle Midtrans notification - DENGAN VALIDASI DUPLIKAT

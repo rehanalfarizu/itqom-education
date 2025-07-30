@@ -7,6 +7,7 @@ use App\Http\Controllers\CourseContentController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /*
 |--------------------------------------------------------------------------

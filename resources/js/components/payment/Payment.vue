@@ -141,16 +141,23 @@ export default {
       try {
         this.loading = true;
 
-        const response = await axios.get(`https://itqom-platform-aa0ffce6a276.herokuapp.com/api/payment/status/${this.orderId}`, {
+        // Use relative URL instead of full heroku URL
+        const response = await axios.get(`/api/payment/status/${this.orderId}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           }
         });
 
         console.log('Payment status response:', response.data);
 
-        if (response.data.success) {
-          this.paymentStatus = response.data.status;
+        // Handle different response structures
+        if (response.data.success !== undefined) {
+          this.paymentStatus = response.data.success ? response.data.status : 'failed';
+          this.courseId = response.data.course_id;
+        } else if (response.data.payment_status) {
+          this.paymentStatus = response.data.payment_status;
           this.courseId = response.data.course_id;
         } else {
           this.paymentStatus = 'unknown';
@@ -158,7 +165,21 @@ export default {
 
       } catch (error) {
         console.error('Error checking payment status:', error);
-        this.paymentStatus = 'error';
+
+        // Handle different error types
+        if (error.response) {
+          console.error('Response error:', error.response.data);
+          if (error.response.status === 404) {
+            this.paymentStatus = 'not_found';
+          } else {
+            this.paymentStatus = 'error';
+          }
+        } else if (error.request) {
+          console.error('Network error:', error.request);
+          this.paymentStatus = 'network_error';
+        } else {
+          this.paymentStatus = 'unknown_error';
+        }
       } finally {
         this.loading = false;
       }
