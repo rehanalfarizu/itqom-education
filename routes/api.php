@@ -108,6 +108,27 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 
+Route::get('/test-midtrans-config', function() {
+    try {
+        return response()->json([
+            'server_key_exists' => !empty(config('services.midtrans.server_key')),
+            'client_key_exists' => !empty(config('services.midtrans.client_key')),
+            'server_key_prefix' => substr(config('services.midtrans.server_key'), 0, 15) . '...',
+            'client_key_prefix' => substr(config('services.midtrans.client_key'), 0, 15) . '...',
+            'is_production' => config('services.midtrans.is_production'),
+            'config_files_check' => [
+                'services.midtrans' => config('services.midtrans'),
+                'midtrans' => config('midtrans')
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
     // Debug routes - MOVED to protected
     Route::prefix('debug')->group(function () {
         Route::get('/database', [CourseController::class, 'debugDatabase']);
