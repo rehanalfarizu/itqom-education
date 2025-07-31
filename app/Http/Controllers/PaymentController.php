@@ -36,7 +36,7 @@ public function createSnapToken(Request $request)
 
         // Flexible validation - accept both user_id and user_profile_id
         $request->validate([
-            'course_id' => 'required|exists:course_description,id',
+            'course_id' => 'required|exists:courses,id',
             'amount' => 'required|numeric|min:1'
         ]);
 
@@ -62,7 +62,7 @@ public function createSnapToken(Request $request)
 
         // STRATEGY 1: Cari berdasarkan authenticated user ID
         $userProfile = DB::table('users_profile')->where('id', $authUser->id)->first();
-        
+
         if ($userProfile) {
             $userProfileId = $userProfile->id;
             Log::info('User found in users_profile by auth ID', [
@@ -72,7 +72,7 @@ public function createSnapToken(Request $request)
         } else {
             // STRATEGY 2: Cari berdasarkan email matching
             $userProfile = DB::table('users_profile')->where('email', $authUser->email)->first();
-            
+
             if ($userProfile) {
                 $userProfileId = $userProfile->id;
                 Log::info('User found in users_profile by email', [
@@ -198,7 +198,7 @@ public function createSnapToken(Request $request)
         // ======= END VALIDASI DUPLIKAT =======
 
         // Get course data
-        $course = DB::table('course_description')->where('id', $courseId)->first();
+        $course = DB::table('courses')->where('id', $courseId)->first();
         if (!$course) {
             return response()->json([
                 'success' => false,
@@ -443,7 +443,7 @@ public function checkPaymentStatus(Request $request, $orderId)
 
         if (!$payment) {
             Log::warning('Payment not found', ['order_id' => $orderId]);
-            
+
             return response()->json([
                 'success' => false,
                 'error' => 'Payment not found',
@@ -459,7 +459,7 @@ public function checkPaymentStatus(Request $request, $orderId)
                 'payment_user_id' => $payment->user_profile_id,
                 'request_user_id' => $request->user()->id
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'error' => 'Unauthorized access to payment',
@@ -547,7 +547,7 @@ public function checkPaymentStatus(Request $request, $orderId)
             }
 
             // Get course title for response
-            $course = DB::table('course_description')->where('id', $payment->course_id)->first();
+            $course = DB::table('courses')->where('id', $payment->course_id)->first();
 
             return response()->json([
                 'success' => $mappedStatus === 'success',
@@ -672,11 +672,11 @@ public function checkPaymentStatus(Request $request, $orderId)
             }
 
             $payments = DB::table('payments')
-                          ->leftJoin('course_description', 'payments.course_id', '=', 'course_description.id')
-                          ->where('payments.user_profile_id', $userProfileId)
-                          ->select('payments.*', 'course_description.title as course_title')
-                          ->orderBy('payments.created_at', 'desc')
-                          ->get();
+                      ->leftJoin('courses', 'payments.course_id', '=', 'courses.id')
+                      ->where('payments.user_profile_id', $userProfileId)
+                      ->select('payments.*', 'courses.title as course_title')
+                      ->orderBy('payments.created_at', 'desc')
+                      ->get();
 
             // Group by course to identify duplicates
             $groupedPayments = $payments->groupBy('course_id');
@@ -724,7 +724,7 @@ public function checkPaymentStatus(Request $request, $orderId)
     try {
         // Get authenticated user
         $user = $request->user();
-        
+
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -734,7 +734,8 @@ public function checkPaymentStatus(Request $request, $orderId)
 
         // Validate course_id
         $request->validate([
-            'course_id' => 'required|exists:course_description,id'
+            'course_id' => 'required|exists:courses,id',
+            'user_profile_id' => 'required|exists:users_profile,id'
         ]);
 
         $courseId = $request->course_id;
@@ -819,14 +820,14 @@ public function paymentFinish(Request $request)
 
         // Get payment record
         $payment = DB::table('payments')->where('order_id', $orderId)->first();
-        
+
         if (!$payment) {
             Log::warning('Payment not found in finish callback', ['order_id' => $orderId]);
             return redirect('/courses?error=payment_not_found');
         }
 
         // Get course info for redirect
-        $course = DB::table('course_description')->where('id', $payment->course_id)->first();
+        $course = DB::table('courses')->where('id', $payment->course_id)->first();
 
         // Redirect to payment result page with proper parameters
         $redirectUrl = '/payment/result?' . http_build_query([
@@ -859,7 +860,7 @@ public function paymentUnfinish(Request $request)
 {
     try {
         $orderId = $request->query('order_id');
-        
+
         Log::info('Payment unfinish callback', [
             'order_id' => $orderId,
             'all_params' => $request->all()
@@ -867,13 +868,13 @@ public function paymentUnfinish(Request $request)
 
         if ($orderId) {
             $payment = DB::table('payments')->where('order_id', $orderId)->first();
-            
+
             $redirectUrl = '/payment/result?' . http_build_query([
                 'order_id' => $orderId,
                 'course_id' => $payment->course_id ?? null,
                 'result' => 'unfinish'
             ]);
-            
+
             return redirect($redirectUrl);
         }
 
@@ -895,7 +896,7 @@ public function paymentError(Request $request)
 {
     try {
         $orderId = $request->query('order_id');
-        
+
         Log::info('Payment error callback', [
             'order_id' => $orderId,
             'all_params' => $request->all()
@@ -903,13 +904,13 @@ public function paymentError(Request $request)
 
         if ($orderId) {
             $payment = DB::table('payments')->where('order_id', $orderId)->first();
-            
+
             $redirectUrl = '/payment/result?' . http_build_query([
                 'order_id' => $orderId,
                 'course_id' => $payment->course_id ?? null,
                 'result' => 'error'
             ]);
-            
+
             return redirect($redirectUrl);
         }
 
