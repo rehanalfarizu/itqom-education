@@ -20,7 +20,8 @@ class Payment extends Model
         'transaction_id',
         'transaction_time',
         'transaction_status',
-        'fraud_status'
+        'fraud_status',
+        'failure_reason'
     ];
 
     protected $casts = [
@@ -38,10 +39,16 @@ class Payment extends Model
 
     /**
      * Get the course associated with the payment.
+     * FIXED: Reference to correct table/model
      */
     public function course()
     {
-        return $this->belongsTo(CourseDescriptions::class, 'course_id');
+        // If you have a Course model that uses 'courses' table
+        return $this->belongsTo(Course::class, 'course_id');
+
+        // OR if you want to keep using CourseDescriptions but fix the table reference
+        // Make sure CourseDescriptions model uses the correct table name
+        // return $this->belongsTo(CourseDescriptions::class, 'course_id');
     }
 
     /**
@@ -66,5 +73,17 @@ class Payment extends Model
     public function scopeFailed($query)
     {
         return $query->whereIn('status', ['failed', 'cancelled', 'expired']);
+    }
+
+    /**
+     * Check if payment is for duplicate course purchase
+     */
+    public function isDuplicatePurchase()
+    {
+        return self::where('user_profile_id', $this->user_profile_id)
+                  ->where('course_id', $this->course_id)
+                  ->where('status', 'success')
+                  ->where('id', '!=', $this->id)
+                  ->exists();
     }
 }
