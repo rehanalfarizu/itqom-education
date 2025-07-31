@@ -4,7 +4,7 @@
             <div class="container mx-auto flex items-center justify-between px-4 py-3">
             <!-- Logo -->
             <router-link to="/" class="logo flex items-center">
-                <img src="/public/image/logo.png" alt="Logo" class="h-8 w-auto" />
+                <img src="/image/logo.png" alt="Logo" class="h-8 w-auto" />
             </router-link>
 
             <!-- Mobile Menu Button -->
