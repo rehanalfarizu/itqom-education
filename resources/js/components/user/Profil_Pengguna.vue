@@ -25,7 +25,7 @@
             </label>
             <button v-if="formData.avatar || currentAvatarPreviewUrl !== '/image/hajisodikin.jpg'"
                     @click="removeAvatar"
-                    type="button"
+                    type= "button"
                     class="text-red-600 text-base hover:underline cursor-pointer mt-2 block">
               Hapus Foto Profil
             </button>
