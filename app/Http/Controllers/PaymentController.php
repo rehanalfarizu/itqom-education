@@ -26,17 +26,17 @@ class PaymentController extends Controller
     }
 
     /**
-     * Create Snap Token for payment - FIXED VERSION
+     * Create Snap Token for payment - DENGAN VALIDASI DUPLIKAT
      */
-    public function createSnapToken(Request $request)
+public function createSnapToken(Request $request)
     {
         try {
             // Log request data untuk debugging
             Log::info('Payment request received', $request->all());
 
-            // FIXED: Validasi dengan tabel yang BENAR sesuai frontend
+            // FIXED: Validation dengan nama tabel yang benar
             $request->validate([
-                'course_id' => 'required|exists:courses,id', // ✅ FIXED: courses bukan course_description
+                'course_id' => 'required|exists:course_description,id', // ✅ FIXED: course_description bukan courses
                 'amount' => 'required|numeric|min:1'
             ]);
 
@@ -197,12 +197,12 @@ class PaymentController extends Controller
             }
             // ======= END VALIDASI DUPLIKAT =======
 
-            // FIXED: Get course data dari tabel yang BENAR
-            $course = DB::table('courses')->where('id', $courseId)->first(); // ✅ FIXED: courses bukan course_description
+            // FIXED: Get course data dari tabel yang benar
+            $course = DB::table('course_description')->where('id', $courseId)->first();
             if (!$course) {
-                Log::error('Course not found in courses table', [
+                Log::error('Course not found in course_description table', [
                     'course_id' => $courseId,
-                    'available_courses' => DB::table('courses')->pluck('id', 'title')
+                    'available_courses' => DB::table('course_description')->pluck('id', 'title')
                 ]);
 
                 return response()->json([
@@ -210,7 +210,7 @@ class PaymentController extends Controller
                     'error' => 'Course not found',
                     'debug_info' => [
                         'course_id' => $courseId,
-                        'table_checked' => 'courses' // ✅ FIXED
+                        'table_checked' => 'course_description'
                     ]
                 ], 404);
             }
@@ -222,7 +222,7 @@ class PaymentController extends Controller
             DB::table('payments')->insert([
                 'order_id' => $orderId,
                 'user_profile_id' => $userProfileId, // INI SEKARANG SUDAH PASTI ADA DI users_profile
-                'course_id' => $courseId, // INI SEKARANG SUDAH PASTI ADA DI courses
+                'course_id' => $courseId, // INI SEKARANG SUDAH PASTI ADA DI course_description
                 'amount' => $amount,
                 'status' => 'pending',
                 'transaction_id' => null,
@@ -320,88 +320,8 @@ class PaymentController extends Controller
     }
 
     /**
-     * Check if user already purchased a course - FIXED VERSION
+     * Handle Midtrans notification - DENGAN VALIDASI DUPLIKAT
      */
-    public function checkCoursePurchase(Request $request)
-    {
-        try {
-            // Get authenticated user
-            $user = $request->user();
-
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'User not authenticated'
-                ], 401);
-            }
-
-            // FIXED: Validate course_id dengan tabel yang BENAR
-            $request->validate([
-                'course_id' => 'required|exists:courses,id', // ✅ FIXED: courses bukan course_description
-                'user_profile_id' => 'required|exists:users_profile,id'
-            ]);
-
-            $courseId = $request->course_id;
-            $userProfileId = $user->id;
-
-            Log::info('Checking course purchase', [
-                'user_id' => $userProfileId,
-                'course_id' => $courseId
-            ]);
-
-            // Check if user already purchased this course
-            $existingPayment = DB::table('payments')
-                ->where('user_profile_id', $userProfileId)
-                ->where('course_id', $courseId)
-                ->where('status', 'success')
-                ->first();
-
-            // Also check in user_courses table (if exists)
-            $hasAccess = DB::table('user_courses')
-                ->where('user_id', $userProfileId)
-                ->where('course_id', $courseId)
-                ->exists();
-
-            return response()->json([
-                'success' => true,
-                'has_purchased' => !!$existingPayment,
-                'has_access' => $hasAccess,
-                'payment_details' => $existingPayment ? [
-                    'order_id' => $existingPayment->order_id,
-                    'purchased_at' => $existingPayment->updated_at,
-                    'amount' => $existingPayment->amount
-                ] : null
-            ]);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Validation error in checkCoursePurchase', [
-                'errors' => $e->errors(),
-                'request_data' => $request->all()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'error' => 'Validation failed',
-                'messages' => $e->errors()
-            ], 422);
-
-        } catch (Exception $e) {
-            Log::error('Error checking course purchase', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to check course purchase',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    // ... rest of the methods remain the same ...
-
     public function handleNotification(Request $request)
     {
         try {
@@ -513,175 +433,184 @@ class PaymentController extends Controller
         }
     }
 
-    public function checkPaymentStatus(Request $request, $orderId)
-    {
-        try {
-            Log::info('Manual payment status check', [
+    /**
+     * Check payment status directly from Midtrans - DENGAN VALIDASI DUPLIKAT
+     */
+    /**
+ * Check payment status directly from Midtrans - IMPROVED VERSION
+ */
+public function checkPaymentStatus(Request $request, $orderId)
+{
+    try {
+        Log::info('Manual payment status check', [
+            'order_id' => $orderId,
+            'user_id' => $request->user()->id ?? 'guest'
+        ]);
+
+        // Get payment record first
+        $payment = DB::table('payments')->where('order_id', $orderId)->first();
+
+        if (!$payment) {
+            Log::warning('Payment not found', ['order_id' => $orderId]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Payment not found',
                 'order_id' => $orderId,
-                'user_id' => $request->user()->id ?? 'guest'
-            ]);
+                'payment_status' => 'not_found'
+            ], 404);
+        }
 
-            // Get payment record first
-            $payment = DB::table('payments')->where('order_id', $orderId)->first();
-
-            if (!$payment) {
-                Log::warning('Payment not found', ['order_id' => $orderId]);
-
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Payment not found',
-                    'order_id' => $orderId,
-                    'payment_status' => 'not_found'
-                ], 404);
-            }
-
-            // Verify user ownership (if authenticated)
-            if ($request->user() && $payment->user_profile_id != $request->user()->id) {
-                Log::warning('Unauthorized payment status check', [
-                    'order_id' => $orderId,
-                    'payment_user_id' => $payment->user_profile_id,
-                    'request_user_id' => $request->user()->id
-                ]);
-
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Unauthorized access to payment',
-                    'payment_status' => 'unauthorized'
-                ], 403);
-            }
-
-            try {
-                // Check status from Midtrans
-                $status = \Midtrans\Transaction::status($orderId);
-
-                Log::info('Payment status from Midtrans', [
-                    'order_id' => $orderId,
-                    'status' => $status->transaction_status,
-                    'payment_type' => $status->payment_type ?? null
-                ]);
-
-                $mappedStatus = $this->mapPaymentStatus($status->transaction_status);
-
-                // ======= VALIDASI DUPLIKAT SAAT MANUAL CHECK =======
-                if ($mappedStatus === 'success') {
-                    $existingSuccessfulPayment = DB::table('payments')
-                        ->where('user_profile_id', $payment->user_profile_id)
-                        ->where('course_id', $payment->course_id)
-                        ->where('status', 'success')
-                        ->where('order_id', '!=', $orderId)
-                        ->first();
-
-                    if ($existingSuccessfulPayment) {
-                        Log::warning('Duplicate successful payment detected in manual check', [
-                            'current_order_id' => $orderId,
-                            'existing_order_id' => $existingSuccessfulPayment->order_id,
-                            'user_profile_id' => $payment->user_profile_id,
-                            'course_id' => $payment->course_id
-                        ]);
-
-                        // Update current payment as failed due to duplicate
-                        DB::table('payments')
-                            ->where('order_id', $orderId)
-                            ->update([
-                                'status' => 'failed',
-                                'transaction_id' => $status->transaction_id ?? null,
-                                'payment_type' => $status->payment_type ?? null,
-                                'transaction_status' => $status->transaction_status,
-                                'failure_reason' => 'Duplicate purchase - user already owns this course',
-                                'updated_at' => now(),
-                            ]);
-
-                        return response()->json([
-                            'success' => false,
-                            'order_id' => $orderId,
-                            'transaction_status' => $status->transaction_status,
-                            'payment_status' => 'failed',
-                            'error' => 'Duplicate purchase detected - you already own this course',
-                            'existing_order_id' => $existingSuccessfulPayment->order_id,
-                            'course_id' => $payment->course_id
-                        ]);
-                    }
-                }
-                // ======= END VALIDASI DUPLIKAT =======
-
-                // Update status in database
-                $updated = DB::table('payments')
-                    ->where('order_id', $orderId)
-                    ->update([
-                        'status' => $mappedStatus,
-                        'transaction_id' => $status->transaction_id ?? null,
-                        'payment_type' => $status->payment_type ?? null,
-                        'transaction_status' => $status->transaction_status,
-                        'updated_at' => now(),
-                    ]);
-
-                Log::info('Payment status updated via manual check', [
-                    'order_id' => $orderId,
-                    'new_status' => $mappedStatus,
-                    'rows_affected' => $updated
-                ]);
-
-                // Grant access if payment is successful
-                if ($mappedStatus === 'success') {
-                    $this->grantCourseAccess(
-                        $payment->user_profile_id,
-                        $payment->course_id
-                    );
-                }
-
-                // Get course title for response - FIXED TABLE NAME
-                $course = DB::table('courses')->where('id', $payment->course_id)->first(); // ✅ FIXED
-
-                return response()->json([
-                    'success' => $mappedStatus === 'success',
-                    'order_id' => $orderId,
-                    'transaction_status' => $status->transaction_status,
-                    'payment_status' => $mappedStatus,
-                    'amount' => $status->gross_amount ?? $payment->amount,
-                    'payment_type' => $status->payment_type ?? null,
-                    'transaction_time' => $status->transaction_time ?? null,
-                    'transaction_id' => $status->transaction_id ?? null,
-                    'course_id' => $payment->course_id,
-                    'course_title' => $course->title ?? null
-                ]);
-
-            } catch (\Exception $midtransError) {
-                Log::error('Error connecting to Midtrans', [
-                    'order_id' => $orderId,
-                    'error' => $midtransError->getMessage()
-                ]);
-
-                // Return status from database if Midtrans fails
-                return response()->json([
-                    'success' => $payment->status === 'success',
-                    'order_id' => $orderId,
-                    'payment_status' => $payment->status,
-                    'transaction_status' => $payment->transaction_status,
-                    'amount' => $payment->amount,
-                    'payment_type' => $payment->payment_type,
-                    'transaction_id' => $payment->transaction_id,
-                    'course_id' => $payment->course_id,
-                    'error' => 'Could not verify with payment gateway, showing cached status',
-                    'midtrans_error' => $midtransError->getMessage()
-                ]);
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Error checking payment status', [
+        // Verify user ownership (if authenticated)
+        if ($request->user() && $payment->user_profile_id != $request->user()->id) {
+            Log::warning('Unauthorized payment status check', [
                 'order_id' => $orderId,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'payment_user_id' => $payment->user_profile_id,
+                'request_user_id' => $request->user()->id
             ]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Failed to check payment status',
-                'message' => $e->getMessage(),
-                'payment_status' => 'error'
-            ], 500);
+                'error' => 'Unauthorized access to payment',
+                'payment_status' => 'unauthorized'
+            ], 403);
         }
-    }
 
+        try {
+            // Check status from Midtrans
+            $status = \Midtrans\Transaction::status($orderId);
+
+            Log::info('Payment status from Midtrans', [
+                'order_id' => $orderId,
+                'status' => $status->transaction_status,
+                'payment_type' => $status->payment_type ?? null
+            ]);
+
+            $mappedStatus = $this->mapPaymentStatus($status->transaction_status);
+
+            // ======= VALIDASI DUPLIKAT SAAT MANUAL CHECK =======
+            if ($mappedStatus === 'success') {
+                $existingSuccessfulPayment = DB::table('payments')
+                    ->where('user_profile_id', $payment->user_profile_id)
+                    ->where('course_id', $payment->course_id)
+                    ->where('status', 'success')
+                    ->where('order_id', '!=', $orderId)
+                    ->first();
+
+                if ($existingSuccessfulPayment) {
+                    Log::warning('Duplicate successful payment detected in manual check', [
+                        'current_order_id' => $orderId,
+                        'existing_order_id' => $existingSuccessfulPayment->order_id,
+                        'user_profile_id' => $payment->user_profile_id,
+                        'course_id' => $payment->course_id
+                    ]);
+
+                    // Update current payment as failed due to duplicate
+                    DB::table('payments')
+                        ->where('order_id', $orderId)
+                        ->update([
+                            'status' => 'failed',
+                            'transaction_id' => $status->transaction_id ?? null,
+                            'payment_type' => $status->payment_type ?? null,
+                            'transaction_status' => $status->transaction_status,
+                            'failure_reason' => 'Duplicate purchase - user already owns this course',
+                            'updated_at' => now(),
+                        ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'order_id' => $orderId,
+                        'transaction_status' => $status->transaction_status,
+                        'payment_status' => 'failed',
+                        'error' => 'Duplicate purchase detected - you already own this course',
+                        'existing_order_id' => $existingSuccessfulPayment->order_id,
+                        'course_id' => $payment->course_id
+                    ]);
+                }
+            }
+            // ======= END VALIDASI DUPLIKAT =======
+
+            // Update status in database
+            $updated = DB::table('payments')
+                ->where('order_id', $orderId)
+                ->update([
+                    'status' => $mappedStatus,
+                    'transaction_id' => $status->transaction_id ?? null,
+                    'payment_type' => $status->payment_type ?? null,
+                    'transaction_status' => $status->transaction_status,
+                    'updated_at' => now(),
+                ]);
+
+            Log::info('Payment status updated via manual check', [
+                'order_id' => $orderId,
+                'new_status' => $mappedStatus,
+                'rows_affected' => $updated
+            ]);
+
+            // Grant access if payment is successful
+            if ($mappedStatus === 'success') {
+                $this->grantCourseAccess(
+                    $payment->user_profile_id,
+                    $payment->course_id
+                );
+            }
+
+            // Get course title for response
+            $course = DB::table('courses')->where('id', $payment->course_id)->first();
+
+            return response()->json([
+                'success' => $mappedStatus === 'success',
+                'order_id' => $orderId,
+                'transaction_status' => $status->transaction_status,
+                'payment_status' => $mappedStatus,
+                'amount' => $status->gross_amount ?? $payment->amount,
+                'payment_type' => $status->payment_type ?? null,
+                'transaction_time' => $status->transaction_time ?? null,
+                'transaction_id' => $status->transaction_id ?? null,
+                'course_id' => $payment->course_id,
+                'course_title' => $course->title ?? null
+            ]);
+
+        } catch (\Exception $midtransError) {
+            Log::error('Error connecting to Midtrans', [
+                'order_id' => $orderId,
+                'error' => $midtransError->getMessage()
+            ]);
+
+            // Return status from database if Midtrans fails
+            return response()->json([
+                'success' => $payment->status === 'success',
+                'order_id' => $orderId,
+                'payment_status' => $payment->status,
+                'transaction_status' => $payment->transaction_status,
+                'amount' => $payment->amount,
+                'payment_type' => $payment->payment_type,
+                'transaction_id' => $payment->transaction_id,
+                'course_id' => $payment->course_id,
+                'error' => 'Could not verify with payment gateway, showing cached status',
+                'midtrans_error' => $midtransError->getMessage()
+            ]);
+        }
+
+    } catch (\Exception $e) {
+        Log::error('Error checking payment status', [
+            'order_id' => $orderId,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'error' => 'Failed to check payment status',
+            'message' => $e->getMessage(),
+            'payment_status' => 'error'
+        ], 500);
+    }
+}
+
+    /**
+     * Grant course access to user - DENGAN VALIDASI DUPLIKAT
+     */
     protected function grantCourseAccess($userId, $courseId)
     {
         try {
@@ -721,6 +650,9 @@ class PaymentController extends Controller
         }
     }
 
+    /**
+     * Map Midtrans status to simpler status
+     */
     protected function mapPaymentStatus($midtransStatus)
     {
         $statusMap = [
@@ -736,6 +668,9 @@ class PaymentController extends Controller
         return $statusMap[$midtransStatus] ?? $midtransStatus;
     }
 
+    /**
+     * Get payment history for user - DENGAN INFO DUPLIKAT
+     */
     public function getUserPayments(Request $request)
     {
         try {
@@ -746,7 +681,7 @@ class PaymentController extends Controller
             }
 
             $payments = DB::table('payments')
-                      ->leftJoin('courses', 'payments.course_id', '=', 'courses.id') // ✅ FIXED
+                      ->leftJoin('courses', 'payments.course_id', '=', 'courses.id')
                       ->where('payments.user_profile_id', $userProfileId)
                       ->select('payments.*', 'courses.title as course_title')
                       ->orderBy('payments.created_at', 'desc')
@@ -790,124 +725,212 @@ class PaymentController extends Controller
         }
     }
 
-    // Payment callback methods
-    public function paymentFinish(Request $request)
+    /**
+     * Check if user already purchased a course - ENDPOINT BARU
+     */
+    public function checkCoursePurchase(Request $request)
     {
         try {
-            $orderId = $request->query('order_id');
-            $statusCode = $request->query('status_code');
-            $transactionStatus = $request->query('transaction_status');
+            // Get authenticated user
+            $user = $request->user();
 
-            Log::info('Payment finish callback', [
-                'order_id' => $orderId,
-                'status_code' => $statusCode,
-                'transaction_status' => $transactionStatus,
-                'all_params' => $request->all()
-            ]);
-
-            if (!$orderId) {
-                Log::warning('Payment finish called without order_id');
-                return redirect('/courses?error=missing_order_id');
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'User not authenticated'
+                ], 401);
             }
 
-            // Get payment record
-            $payment = DB::table('payments')->where('order_id', $orderId)->first();
-
-            if (!$payment) {
-                Log::warning('Payment not found in finish callback', ['order_id' => $orderId]);
-                return redirect('/courses?error=payment_not_found');
-            }
-
-            // Get course info for redirect - FIXED TABLE NAME
-            $course = DB::table('courses')->where('id', $payment->course_id)->first(); // ✅ FIXED
-
-            // Redirect to payment result page with proper parameters
-            $redirectUrl = '/payment/result?' . http_build_query([
-                'order_id' => $orderId,
-                'course_id' => $payment->course_id,
-                'result' => $transactionStatus === 'settlement' || $transactionStatus === 'capture' ? 'success' : 'pending'
+            // FIXED: Validate course_id dengan tabel yang benar
+            $request->validate([
+                'course_id' => 'required|exists:course_description,id', // ✅ FIXED
+                'user_profile_id' => 'required|exists:users_profile,id'
             ]);
 
-            Log::info('Redirecting to payment result', [
-                'order_id' => $orderId,
-                'redirect_url' => $redirectUrl
+            $courseId = $request->course_id;
+            $userProfileId = $user->id;
+
+            Log::info('Checking course purchase', [
+                'user_id' => $userProfileId,
+                'course_id' => $courseId
             ]);
 
-            return redirect($redirectUrl);
+            // Check if user already purchased this course
+            $existingPayment = DB::table('payments')
+                ->where('user_profile_id', $userProfileId)
+                ->where('course_id', $courseId)
+                ->where('status', 'success')
+                ->first();
 
-        } catch (\Exception $e) {
-            Log::error('Error in payment finish callback', [
-                'error' => $e->getMessage(),
+            // Also check in user_courses table (if exists)
+            $hasAccess = DB::table('user_courses')
+                ->where('user_id', $userProfileId)
+                ->where('course_id', $courseId)
+                ->exists();
+
+            return response()->json([
+                'success' => true,
+                'has_purchased' => !!$existingPayment,
+                'has_access' => $hasAccess,
+                'payment_details' => $existingPayment ? [
+                    'order_id' => $existingPayment->order_id,
+                    'purchased_at' => $existingPayment->updated_at,
+                    'amount' => $existingPayment->amount
+                ] : null
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error in checkCoursePurchase', [
+                'errors' => $e->errors(),
                 'request_data' => $request->all()
             ]);
 
-            return redirect('/courses?error=payment_finish_error');
+            return response()->json([
+                'success' => false,
+                'error' => 'Validation failed',
+                'messages' => $e->errors()
+            ], 422);
+
+        } catch (Exception $e) {
+            Log::error('Error checking course purchase', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to check course purchase',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
+    /**
+ * Handle payment finish callback from Midtrans
+ */
+public function paymentFinish(Request $request)
+{
+    try {
+        $orderId = $request->query('order_id');
+        $statusCode = $request->query('status_code');
+        $transactionStatus = $request->query('transaction_status');
 
-    public function paymentUnfinish(Request $request)
-    {
-        try {
-            $orderId = $request->query('order_id');
+        Log::info('Payment finish callback', [
+            'order_id' => $orderId,
+            'status_code' => $statusCode,
+            'transaction_status' => $transactionStatus,
+            'all_params' => $request->all()
+        ]);
 
-            Log::info('Payment unfinish callback', [
+        if (!$orderId) {
+            Log::warning('Payment finish called without order_id');
+            return redirect('/courses?error=missing_order_id');
+        }
+
+        // Get payment record
+        $payment = DB::table('payments')->where('order_id', $orderId)->first();
+
+        if (!$payment) {
+            Log::warning('Payment not found in finish callback', ['order_id' => $orderId]);
+            return redirect('/courses?error=payment_not_found');
+        }
+
+        // Get course info for redirect
+        $course = DB::table('courses')->where('id', $payment->course_id)->first();
+
+        // Redirect to payment result page with proper parameters
+        $redirectUrl = '/payment/result?' . http_build_query([
+            'order_id' => $orderId,
+            'course_id' => $payment->course_id,
+            'result' => $transactionStatus === 'settlement' || $transactionStatus === 'capture' ? 'success' : 'pending'
+        ]);
+
+        Log::info('Redirecting to payment result', [
+            'order_id' => $orderId,
+            'redirect_url' => $redirectUrl
+        ]);
+
+        return redirect($redirectUrl);
+
+    } catch (\Exception $e) {
+        Log::error('Error in payment finish callback', [
+            'error' => $e->getMessage(),
+            'request_data' => $request->all()
+        ]);
+
+        return redirect('/courses?error=payment_finish_error');
+    }
+}
+
+/**
+ * Handle payment unfinish callback from Midtrans
+ */
+public function paymentUnfinish(Request $request)
+{
+    try {
+        $orderId = $request->query('order_id');
+
+        Log::info('Payment unfinish callback', [
+            'order_id' => $orderId,
+            'all_params' => $request->all()
+        ]);
+
+        if ($orderId) {
+            $payment = DB::table('payments')->where('order_id', $orderId)->first();
+
+            $redirectUrl = '/payment/result?' . http_build_query([
                 'order_id' => $orderId,
-                'all_params' => $request->all()
+                'course_id' => $payment->course_id ?? null,
+                'result' => 'unfinish'
             ]);
 
-            if ($orderId) {
-                $payment = DB::table('payments')->where('order_id', $orderId)->first();
-
-                $redirectUrl = '/payment/result?' . http_build_query([
-                    'order_id' => $orderId,
-                    'course_id' => $payment->course_id ?? null,
-                    'result' => 'unfinish'
-                ]);
-
-                return redirect($redirectUrl);
-            }
-
-            return redirect('/courses?error=payment_unfinished');
-
-        } catch (\Exception $e) {
-            Log::error('Error in payment unfinish callback', [
-                'error' => $e->getMessage()
-            ]);
-
-            return redirect('/courses?error=payment_unfinish_error');
+            return redirect($redirectUrl);
         }
+
+        return redirect('/courses?error=payment_unfinished');
+
+    } catch (\Exception $e) {
+        Log::error('Error in payment unfinish callback', [
+            'error' => $e->getMessage()
+        ]);
+
+        return redirect('/courses?error=payment_unfinish_error');
     }
+}
 
-    public function paymentError(Request $request)
-    {
-        try {
-            $orderId = $request->query('order_id');
+/**
+ * Handle payment error callback from Midtrans
+ */
+public function paymentError(Request $request)
+{
+    try {
+        $orderId = $request->query('order_id');
 
-            Log::info('Payment error callback', [
+        Log::info('Payment error callback', [
+            'order_id' => $orderId,
+            'all_params' => $request->all()
+        ]);
+
+        if ($orderId) {
+            $payment = DB::table('payments')->where('order_id', $orderId)->first();
+
+            $redirectUrl = '/payment/result?' . http_build_query([
                 'order_id' => $orderId,
-                'all_params' => $request->all()
+                'course_id' => $payment->course_id ?? null,
+                'result' => 'error'
             ]);
 
-            if ($orderId) {
-                $payment = DB::table('payments')->where('order_id', $orderId)->first();
-
-                $redirectUrl = '/payment/result?' . http_build_query([
-                    'order_id' => $orderId,
-                    'course_id' => $payment->course_id ?? null,
-                    'result' => 'error'
-                ]);
-
-                return redirect($redirectUrl);
-            }
-
-            return redirect('/courses?error=payment_error');
-
-        } catch (\Exception $e) {
-            Log::error('Error in payment error callback', [
-                'error' => $e->getMessage()
-            ]);
-
-            return redirect('/courses?error=payment_callback_error');
+            return redirect($redirectUrl);
         }
+
+        return redirect('/courses?error=payment_error');
+
+    } catch (\Exception $e) {
+        Log::error('Error in payment error callback', [
+            'error' => $e->getMessage()
+        ]);
+
+        return redirect('/courses?error=payment_callback_error');
     }
+}
 }
