@@ -207,42 +207,8 @@ export default {
       ]
     };
   },
-  computed: {
-    userCreatedAtYear() {
-      if (this.userCreatedAt) {
-        return new Date(this.userCreatedAt).getFullYear();
-      }
-      return new Date().getFullYear();
-    },
-    randomMotivasi() {
-      const randomIndex = Math.floor(Math.random() * this.motivasi.length);
-      return this.motivasi[randomIndex];
-    },
-    currentAvatarUrl() {
-        return this.currentAvatarPreviewUrl;
-    }
-  },
-  created() {
-    this.fetchProfileData();
-  },
+
   methods: {
-    formatDateForInput(dateString) {
-      if (!dateString) return '';
-
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-        return dateString;
-      }
-
-      try {
-        const date = new Date(dateString);
-        if (isNaN(date)) return '';
-        return date.toISOString().split('T')[0];
-      } catch (error) {
-        console.error('Error formatting date:', error);
-        return '';
-      }
-    },
-
     async fetchProfileData() {
       try {
         const authToken = localStorage.getItem('authToken');
@@ -252,8 +218,6 @@ export default {
           return;
         }
 
-        console.log('🔑 Fetching profile with token:', authToken);
-
         const response = await axios.get('/api/profile', {
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -262,15 +226,12 @@ export default {
           }
         });
 
-        console.log('✅ Profile response:', response.data);
-
         const { user, profile } = response.data;
 
+        // Populate form data
         this.formData.fullname = profile.fullname || user.name;
         this.formData.username = profile.username || '';
         this.formData.dob = this.formatDateForInput(profile.dob);
-        console.log('📅 Original DOB:', profile.dob, '-> Formatted:', this.formData.dob);
-
         this.formData.email = profile.email || user.email;
         this.formData.bio = profile.bio || 'Coding enthusiast & Error lover 💀';
         this.formData.hobbies = profile.hobbies || [];
@@ -278,10 +239,15 @@ export default {
         this.formData.progress = profile.progress ?? 60;
         this.formData.badges = profile.badges || [];
 
-        console.log('📋 Populated formData:', this.formData);
-
+        // FIXED: Handle Cloudinary avatar URLs
         if (profile.avatar) {
-          this.currentAvatarPreviewUrl = `/storage/${profile.avatar}`;
+          // Check if it's already a full URL (Cloudinary)
+          if (profile.avatar.startsWith('http')) {
+            this.currentAvatarPreviewUrl = profile.avatar;
+          } else {
+            // If it's a relative path, construct full URL
+            this.currentAvatarPreviewUrl = `/storage/${profile.avatar}`;
+          }
         } else {
           this.currentAvatarPreviewUrl = '/image/hajisodikin.jpg';
         }
@@ -290,18 +256,46 @@ export default {
 
       } catch (error) {
         console.error('❌ Error fetching profile:', error);
-        console.error('📊 Error response:', error.response);
 
         if (error.response?.status === 401) {
           this.errorMessage = 'Token tidak valid. Silakan login ulang.';
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
           this.$router.push('/login');
-        } else if (error.response?.status === 404) {
-          this.errorMessage = 'Endpoint profil tidak ditemukan. Periksa route backend.';
         } else {
           this.errorMessage = error.response?.data?.message || 'Gagal memuat data profil.';
         }
+      }
+    },
+
+    handleAvatarChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        const maxSize = 5 * 1024 * 1024; // 5MB for Cloudinary
+
+        if (!validTypes.includes(file.type)) {
+          this.errorMessage = 'Format file tidak didukung. Gunakan JPEG, PNG, JPG, GIF, atau WebP.';
+          event.target.value = '';
+          return;
+        }
+
+        if (file.size > maxSize) {
+          this.errorMessage = 'Ukuran file terlalu besar. Maksimal 5MB.';
+          event.target.value = '';
+          return;
+        }
+
+        this.formData.avatar = file;
+
+        // Preview image
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.currentAvatarPreviewUrl = e.target.result;
+        };
+        reader.readAsDataURL(file);
+
+        this.errorMessage = '';
       }
     },
 
@@ -310,14 +304,7 @@ export default {
       this.successMessage = '';
       this.errorMessage = '';
 
-      const dataToSubmit = new FormData();
-
-      if (this.formData.dob && !/^\d{4}-\d{2}-\d{2}$/.test(this.formData.dob)) {
-        this.errorMessage = 'Format tanggal lahir tidak valid. Gunakan format YYYY-MM-DD.';
-        this.isSaving = false;
-        return;
-      }
-
+      // Validation
       if (!this.formData.fullname || this.formData.fullname.trim() === '') {
         this.errorMessage = 'Nama lengkap harus diisi.';
         this.isSaving = false;
@@ -330,6 +317,9 @@ export default {
         return;
       }
 
+      const dataToSubmit = new FormData();
+
+      // Add all form data
       for (const key in this.formData) {
         if (key === 'hobbies' && Array.isArray(this.formData.hobbies)) {
           this.formData.hobbies.forEach(hobby => {
@@ -345,19 +335,7 @@ export default {
         }
       }
 
-      if (!dataToSubmit.has('fullname')) {
-        dataToSubmit.append('fullname', this.formData.fullname || '');
-      }
-      if (!dataToSubmit.has('email')) {
-        dataToSubmit.append('email', this.formData.email || '');
-      }
-
       dataToSubmit.append('_method', 'PUT');
-
-      console.log('📤 FormData contents:');
-      for (let [key, value] of dataToSubmit.entries()) {
-        console.log(`${key}:`, value);
-      }
 
       try {
         const authToken = localStorage.getItem('authToken');
@@ -367,7 +345,6 @@ export default {
           return;
         }
 
-        console.log('🚀 Sending request to /api/user/profile with method POST');
         const response = await axios.post('/api/user/profile', dataToSubmit, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -377,15 +354,12 @@ export default {
 
         this.successMessage = response.data.message || 'Data berhasil disimpan!';
 
-        if (response.data.profile && response.data.profile.dob) {
-          this.formData.dob = this.formatDateForInput(response.data.profile.dob);
-          console.log('📅 Updated DOB from response:', response.data.profile.dob, '-> Formatted:', this.formData.dob);
-        }
-
+        // FIXED: Handle Cloudinary avatar URL from response
         if (response.data.avatar_url) {
           this.currentAvatarPreviewUrl = response.data.avatar_url;
         }
 
+        // Update localStorage
         const currentUserData = JSON.parse(localStorage.getItem('user'));
         if (currentUserData) {
           currentUserData.name = this.formData.fullname;
@@ -397,11 +371,11 @@ export default {
         window.dispatchEvent(new Event('profileUpdated'));
         sessionStorage.removeItem('userProfile');
 
-        this.successMessage = 'Profil berhasil diperbarui! Halaman akan di-refresh dalam 1 detik...';
+        this.successMessage = 'Profil berhasil diperbarui! Halaman akan di-refresh dalam 2 detik...';
 
         setTimeout(() => {
           window.location.reload();
-        }, 1000);
+        }, 2000);
 
       } catch (error) {
         console.error('❌ Error submitting profile:', error);
@@ -423,7 +397,7 @@ export default {
         setTimeout(() => {
           this.successMessage = '';
           this.errorMessage = '';
-        }, 3000);
+        }, 5000);
       }
     },
 
