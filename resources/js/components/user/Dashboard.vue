@@ -1,21 +1,16 @@
 <template>
     <section class="bg-gray-50 min-h-screen text-gray-800 font-sans">
-        <div class="max-w-6xl mx-auto px-3 sm:px-6 pt-10 sm:pt-24">
+        <div class="max-w-6xl mx-auto px-6 pt-24">
 
-            <!-- Header Mobile Optimized -->
-            <div class="mb-6 sm:mb-10 text-center sm:text-left">
+            <div class="mb-10 flex justify-between items-center">
                 <div>
-                    <h1 class="text-2xl sm:text-3xl font-extrabold text-purple-800 flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2">
-                        🚀 Dashboard Kamu
-                        <span class="text-sm sm:text-lg bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full">Gen Z</span>
+                    <h1 class="text-3xl font-extrabold text-purple-800 flex items-center gap-2">
+                        🚀 Dashboard Kamu <span class="text-lg bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full">Gen Z</span>
                     </h1>
-                    <p class="text-gray-600 mt-2 text-sm sm:text-base px-2 sm:px-0">
+                    <p class="text-gray-600 mt-2">
                         Halo, <span class="font-semibold text-purple-700">{{ userName }}</span>!
                         <span class="ml-1">👋</span>
-                        <br class="sm:hidden">
-                        <span class="block sm:inline mt-1 sm:mt-0">
-                            {{ purchasedCourses.length > 0 ? 'Siap upgrade skill hari ini? Yuk cek progres dan tantangan barumu!' : 'Yuk mulai perjalanan coding kamu dengan membeli course pertama!' }}
-                        </span>
+                        {{ purchasedCourses.length > 0 ? 'Siap upgrade skill hari ini? Yuk cek progres dan tantangan barumu!' : 'Yuk mulai perjalanan coding kamu dengan membeli course pertama!' }}
                     </p>
                 </div>
             </div>
@@ -23,32 +18,32 @@
             <!-- Loading State -->
             <div v-if="loading" class="text-center py-10">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                <p class="text-gray-600 mt-2 text-sm sm:text-base">{{ loadingMessage }}</p>
+                <p class="text-gray-600 mt-2">{{ loadingMessage }}</p>
             </div>
 
             <!-- Post-Purchase Loading State -->
             <div v-else-if="isPostPurchaseScenario && purchasedCourses.length === 0" class="text-center py-10">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-                <p class="text-green-600 mt-2 font-semibold text-sm sm:text-base">🎉 Pembelian berhasil! Memuat course kamu...</p>
-                <p class="text-gray-500 text-xs sm:text-sm mt-1">Tunggu sebentar, kamu akan diarahkan ke course...</p>
+                <p class="text-green-600 mt-2 font-semibold">🎉 Pembelian berhasil! Memuat course kamu...</p>
+                <p class="text-gray-500 text-sm mt-1">Tunggu sebentar, kamu akan diarahkan ke course...</p>
             </div>
 
-            <!-- Section Course yang Sudah Dibeli - Mobile Optimized -->
-            <div v-else-if="!loading && purchasedCourses && purchasedCourses.length > 0" class="mb-6 sm:mb-10">
-                <h2 class="text-xl sm:text-2xl font-bold text-purple-800 mb-4 sm:mb-6 flex items-center justify-center sm:justify-start gap-2">
+            <!-- Section Course yang Sudah Dibeli - PRIORITAS TERTINGGI -->
+            <div v-else-if="!loading && purchasedCourses && purchasedCourses.length > 0" class="mb-10">
+                <h2 class="text-2xl font-bold text-purple-800 mb-6 flex items-center gap-2">
                     📚 Course yang Sudah Kamu Beli
                 </h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div
                         v-for="course in purchasedCourses"
                         :key="course.id"
-                        class="bg-white shadow-lg rounded-lg p-4 sm:p-6 border-l-4 border-purple-500 hover:shadow-xl transition-shadow"
+                        class="bg-white shadow-lg rounded-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-shadow"
                         :class="{ 'ring-2 ring-purple-400 bg-purple-50': activeProgram && activeProgram.id === course.id }"
                     >
-                        <div class="flex flex-col gap-3 sm:gap-4">
+                        <div class="flex items-start gap-4">
                             <div class="flex-1">
-                                <h3 class="font-bold text-base sm:text-lg text-purple-800 mb-2 leading-tight">{{ course.title }}</h3>
-                                <p class="text-xs sm:text-sm text-gray-600 mb-2">
+                                <h3 class="font-bold text-lg text-purple-800 mb-2">{{ course.title }}</h3>
+                                <p class="text-sm text-gray-600 mb-2">
                                     Dibeli: {{ formatDate(course.purchased_at) }}
                                 </p>
 
@@ -69,8 +64,8 @@
                                     </p>
                                 </div>
 
-                                <!-- Course completion status - Mobile optimized -->
-                                <div class="flex flex-wrap items-center gap-1 sm:gap-2 mb-3">
+                                <!-- Course completion status -->
+                                <div class="flex items-center gap-2 mb-3">
                                     <span class="inline-block bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-semibold">
                                         ✓ Sudah Dibeli
                                     </span>
@@ -86,7 +81,7 @@
 
                                 <button
                                     @click="startLearning(course)"
-                                    class="w-full sm:w-auto inline-block bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition text-sm text-center"
+                                    class="inline-block bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition text-sm"
                                 >
                                     {{ getActionButtonText(course) }} 🚀
                                 </button>
@@ -96,48 +91,48 @@
                 </div>
             </div>
 
-            <!-- Section jika belum ada course yang dibeli - Mobile optimized -->
-            <div v-else-if="!loading && (!purchasedCourses || purchasedCourses.length === 0) && !isPostPurchaseScenario" class="mb-6 sm:mb-10">
-                <div class="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-lg p-6 sm:p-8 text-center">
-                    <span class="text-4xl sm:text-6xl mb-4 block">📚</span>
-                    <h2 class="text-xl sm:text-2xl font-bold text-purple-800 mb-4">Belum Ada Course yang Dibeli</h2>
-                    <p class="text-gray-600 mb-6 text-sm sm:text-base px-2 sm:px-0">Yuk mulai perjalanan coding kamu! Pilih course yang sesuai dengan minat dan tujuan kariermu.</p>
-                    <a href="/course" class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-6 py-3 rounded-lg hover:scale-105 transition inline-block">
+            <!-- Section jika belum ada course yang dibeli -->
+            <div v-else-if="!loading && (!purchasedCourses || purchasedCourses.length === 0) && !isPostPurchaseScenario" class="mb-10">
+                <div class="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-lg p-8 text-center">
+                    <span class="text-6xl mb-4 block">📚</span>
+                    <h2 class="text-2xl font-bold text-purple-800 mb-4">Belum Ada Course yang Dibeli</h2>
+                    <p class="text-gray-600 mb-6">Yuk mulai perjalanan coding kamu! Pilih course yang sesuai dengan minat dan tujuan kariermu.</p>
+                    <a href="/course" class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-6 py-3 rounded-lg hover:scale-105 transition">
                         Lihat Course Available 🚀
                     </a>
                 </div>
             </div>
 
-            <!-- Enhanced Notifications - Mobile optimized -->
-            <div v-if="showPurchaseNotification" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-100 border-l-4 border-green-500 rounded-lg mx-2 sm:mx-0">
-                <div class="flex items-start sm:items-center">
-                    <span class="text-xl sm:text-2xl mr-3 flex-shrink-0">🎉</span>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-bold text-green-800 text-sm sm:text-base">Selamat! Pembelian Anda berhasil!</p>
-                        <p class="text-green-700 text-xs sm:text-sm break-words">{{ latestPurchasedCourse }} sudah siap untuk dipelajari.</p>
-                        <p class="text-green-600 text-xs mt-1">{{ redirectCountdown > 0 ? `Redirect ke course dalam ${redirectCountdown} detik...` : 'Redirecting...' }}</p>
+            <!-- Enhanced Notifications -->
+            <div v-if="showPurchaseNotification" class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 rounded-lg">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-3">🎉</span>
+                    <div>
+                        <p class="font-bold text-green-800">Selamat! Pembelian Anda berhasil!</p>
+                        <p class="text-green-700">{{ latestPurchasedCourse }} sudah siap untuk dipelajari.</p>
+                        <p class="text-green-600 text-sm mt-1">{{ redirectCountdown > 0 ? `Redirect ke course dalam ${redirectCountdown} detik...` : 'Redirecting...' }}</p>
                     </div>
                     <button
                         @click="dismissNotification"
-                        class="ml-2 text-green-600 hover:text-green-800 font-bold text-lg flex-shrink-0"
+                        class="ml-auto text-green-600 hover:text-green-800 font-bold"
                     >
                         ✕
                     </button>
                 </div>
             </div>
 
-            <!-- Enhanced Dashboard Cards - Mobile Stack -->
-            <div v-if="!loading && purchasedCourses.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-10">
+            <!-- Enhanced Dashboard Cards -->
+            <div v-if="!loading && purchasedCourses.length > 0" class="grid md:grid-cols-3 gap-6 mb-10">
                 <!-- Enhanced Program Aktif -->
-                <div class="bg-white shadow rounded-lg p-4 sm:p-6">
-                    <h3 class="text-base sm:text-lg font-semibold text-purple-700 flex items-center gap-2">🔥 Program Aktif</h3>
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-purple-700 flex items-center gap-2">🔥 Program Aktif</h3>
                     <div v-if="activeProgram">
                         <button @click="startLearning(activeProgram)" class="block w-full text-left">
-                            <h4 class="text-lg sm:text-xl font-bold text-purple-800 mt-2 hover:text-purple-600 transition leading-tight">
+                            <h4 class="text-xl font-bold text-purple-800 mt-2 hover:text-purple-600 transition">
                                 {{ activeProgram.title }}
                             </h4>
                         </button>
-                        <p class="text-xs sm:text-sm text-gray-500 mt-1">
+                        <p class="text-sm text-gray-500 mt-1">
                             Terakhir dipelajari: {{ formatDate(activeProgram.last_accessed || activeProgram.purchased_at) }}
                         </p>
 
@@ -157,31 +152,31 @@
                             </p>
                         </div>
 
-                        <div class="flex flex-wrap gap-1 sm:gap-2 mt-2">
+                        <div class="flex gap-2 mt-2">
                             <span class="inline-block bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">On Fire!</span>
                             <span v-if="isCourseCompleted(activeProgram.id)"
                                   class="inline-block bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">🎓 Completed</span>
                         </div>
                     </div>
                     <div v-else>
-                        <p class="text-base sm:text-lg text-gray-600 mt-2">Belum ada program aktif</p>
+                        <p class="text-lg text-gray-600 mt-2">Belum ada program aktif</p>
                         <a href="/course" class="text-sm text-purple-600 hover:underline">Pilih Course</a>
                     </div>
                 </div>
 
                 <!-- Enhanced Progres Belajar -->
-                <div class="bg-white shadow rounded-lg p-4 sm:p-6">
-                    <h3 class="text-base sm:text-lg font-semibold text-purple-700 flex items-center gap-2">📈 Progres Belajar</h3>
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-purple-700 flex items-center gap-2">📈 Progres Belajar</h3>
                     <div class="w-full bg-gray-200 h-4 rounded-full mt-2 relative overflow-hidden">
                         <div
                             class="bg-gradient-to-r from-purple-500 to-indigo-500 h-4 rounded-full transition-all duration-700"
                             :style="{ width: currentProgress.percentage + '%' }"
                         ></div>
                         <span
-                            class="absolute right-2 sm:right-3 top-0 text-xs font-bold text-purple-700 h-4 flex items-center"
+                            class="absolute right-3 top-0 text-xs font-bold text-purple-700 h-4 flex items-center"
                         >{{ Math.round(currentProgress.percentage) }}%</span>
                     </div>
-                    <p class="text-xs sm:text-sm text-gray-600 mt-1">
+                    <p class="text-sm text-gray-600 mt-1">
                         <span>{{ currentProgress.completed }} dari {{ currentProgress.total }} materi selesai</span>
                         <span class="ml-1">🎯</span>
                     </p>
@@ -191,53 +186,51 @@
                     <button
                         v-if="activeProgram"
                         @click="startLearning(activeProgram)"
-                        class="mt-3 w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition text-sm"
+                        class="mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition"
                     >
                         {{ getActionButtonText(activeProgram) }} 🚀
                     </button>
                 </div>
 
                 <!-- Enhanced Sesi Selanjutnya -->
-                <div class="bg-white shadow rounded-lg p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
-                    <h3 class="text-base sm:text-lg font-semibold text-purple-700 flex items-center gap-2">⏰ Sesi Selanjutnya</h3>
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-purple-700 flex items-center gap-2">⏰ Sesi Selanjutnya</h3>
                     <div v-if="activeProgram">
-                        <p class="text-sm sm:text-base mt-2 font-bold">{{ nextSessionDate }}</p>
-                        <p class="text-xs sm:text-sm text-gray-500">
-                            Course: <span class="font-semibold text-indigo-700 break-words">{{ activeProgram.title }}</span>
+                        <p class="text-base mt-2 font-bold">{{ nextSessionDate }}</p>
+                        <p class="text-sm text-gray-500">
+                            Course: <span class="font-semibold text-indigo-700">{{ activeProgram.title }}</span>
                         </p>
                         <p class="text-xs text-gray-400 mt-1">Bareng: <span class="font-semibold text-indigo-700">Mentor Tim</span></p>
-                        <div class="flex flex-wrap gap-1 sm:gap-2 mt-2">
+                        <div class="flex gap-2 mt-2">
                             <span class="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">Jangan Telat!</span>
                             <span v-if="getNextMaterial(activeProgram.id)"
-                                  class="inline-block bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full break-words">
+                                  class="inline-block bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full">
                                 Next: {{ getNextMaterial(activeProgram.id).judul }}
                             </span>
                         </div>
                     </div>
                     <div v-else>
-                        <p class="text-xs sm:text-sm text-gray-600 mt-2">Belum ada sesi terjadwal</p>
+                        <p class="text-sm text-gray-600 mt-2">Belum ada sesi terjadwal</p>
                         <p class="text-xs text-gray-400">Beli course untuk memulai sesi belajar</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Enhanced Stats banner - Mobile optimized -->
-            <div v-if="!loading && purchasedCourses.length > 0" class="bg-gradient-to-r from-indigo-100 to-purple-100 rounded-lg p-4 text-center mb-6 sm:mb-10 mx-2 sm:mx-0">
-                <div class="text-sm sm:text-base">
-                    <span class="text-purple-800 font-bold">👨‍💻 12.000+</span> Gen Z sudah belajar bareng Dunia Coding!
-                    <span class="block sm:inline ml-0 sm:ml-2 text-green-600 font-semibold">#NoMoreSkip</span>
-                </div>
-                <div class="mt-2 text-xs sm:text-sm text-gray-600">
+            <!-- Enhanced Stats banner -->
+            <div v-if="!loading && purchasedCourses.length > 0" class="bg-gradient-to-r from-indigo-100 to-purple-100 rounded-lg p-4 text-center mb-10">
+                <span class="text-purple-800 font-bold">👨‍💻 12.000+</span> Gen Z sudah belajar bareng Dunia Coding!
+                <span class="ml-2 text-green-600 font-semibold">#NoMoreSkip</span>
+                <div class="mt-2 text-sm text-gray-600">
                     Kamu sudah menyelesaikan <strong>{{ overallStats.totalCompleted }}</strong> materi dari <strong>{{ overallStats.totalMaterials }}</strong> total materi
                 </div>
             </div>
 
-            <!-- Enhanced Learning Progress Cards - Mobile Stack -->
-            <div v-if="!loading && purchasedCourses.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-10">
-                <div class="bg-white shadow rounded-lg p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-                    <div class="flex-1">
-                        <h3 class="text-base sm:text-lg font-bold text-purple-800 leading-tight">{{ activeProgram ? activeProgram.title : 'Course Aktif' }}</h3>
-                        <p class="text-xs sm:text-sm text-gray-600">{{ activeProgram ? 'Lanjutkan pembelajaran' : 'Belum ada course aktif' }}</p>
+            <!-- Enhanced Learning Progress Cards -->
+            <div v-if="!loading && purchasedCourses.length > 0" class="grid md:grid-cols-2 gap-6 mb-10">
+                <div class="bg-white shadow rounded-lg p-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-bold text-purple-800">{{ activeProgram ? activeProgram.title : 'Course Aktif' }}</h3>
+                        <p class="text-sm text-gray-600">{{ activeProgram ? 'Lanjutkan pembelajaran' : 'Belum ada course aktif' }}</p>
                         <div v-if="activeProgram && currentProgress.total > 0" class="mt-2">
                             <p class="text-xs text-gray-500">Progress: {{ Math.round(currentProgress.percentage) }}%</p>
                             <p v-if="currentProgress.materialsSource" class="text-xs text-gray-400">
@@ -248,23 +241,23 @@
                     <button
                         v-if="activeProgram"
                         @click="startLearning(activeProgram)"
-                        class="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition text-sm"
+                        class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition"
                     >
                         {{ getActionButtonText(activeProgram) }}
                     </button>
                     <a
                         v-else
                         href="/course"
-                        class="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition text-sm text-center"
+                        class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition"
                     >
                         Pilih Course
                     </a>
                 </div>
 
-                <div class="bg-white shadow rounded-lg p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-                    <div class="flex-1">
-                        <h3 class="text-base sm:text-xl font-bold text-purple-800 flex items-center gap-2">🎓 Lihat Sertifikat</h3>
-                        <p class="text-xs sm:text-sm text-gray-600">
+                <div class="bg-white shadow rounded-lg p-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-purple-800 flex items-center gap-2">🎓 Lihat Sertifikat</h3>
+                        <p class="text-sm text-gray-600">
                             {{ completedCoursesCount > 0 ? `${completedCoursesCount} sertifikat siap diunduh` : 'Selesaikan course untuk mendapat sertifikat' }}
                         </p>
                         <div v-if="completedCoursesCount > 0" class="mt-1">
@@ -272,99 +265,90 @@
                         </div>
                     </div>
                     <a :href="routes.certificate"
-                        class="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition text-sm text-center">Lihat</a>
+                        class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition">Lihat</a>
                 </div>
             </div>
 
-            <!-- Quick Actions - Mobile optimized -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-10">
+            <!-- Quick Actions (unchanged) -->
+            <div class="grid md:grid-cols-3 gap-6 mb-10">
                 <a :href="routes.course"
-                    class="bg-white shadow rounded-lg p-4 sm:p-6 flex flex-row sm:flex-col items-center justify-start sm:justify-center hover:scale-105 transition group gap-4 sm:gap-0">
-                    <span class="text-2xl sm:text-3xl mb-0 sm:mb-2 group-hover:animate-bounce">📚</span>
-                    <div class="text-left sm:text-center">
-                        <span class="font-bold text-purple-700 block">Kursus</span>
-                        <span class="text-xs text-gray-500 mt-1 block">Lihat semua kelas & promo terbaru</span>
-                    </div>
+                    class="bg-white shadow rounded-lg p-6 flex flex-col items-center hover:scale-105 transition group">
+                    <span class="text-3xl mb-2 group-hover:animate-bounce">📚</span>
+                    <span class="font-bold text-purple-700">Kursus</span>
+                    <span class="text-xs text-gray-500 mt-1">Lihat semua kelas & promo terbaru</span>
                 </a>
                 <a :href="routes.tanyaMentor"
-                    class="bg-white shadow rounded-lg p-4 sm:p-6 flex flex-row sm:flex-col items-center justify-start sm:justify-center hover:scale-105 transition group gap-4 sm:gap-0">
-                    <span class="text-2xl sm:text-3xl mb-0 sm:mb-2 group-hover:animate-bounce">💬</span>
-                    <div class="text-left sm:text-center">
-                        <span class="font-bold text-purple-700 block">Tanya Mentor</span>
-                        <span class="text-xs text-gray-500 mt-1 block">Diskusi & Tanya jawab</span>
-                    </div>
+                    class="bg-white shadow rounded-lg p-6 flex flex-col items-center hover:scale-105 transition group">
+                    <span class="text-3xl mb-2 group-hover:animate-bounce">💬</span>
+                    <span class="font-bold text-purple-700">Tanya Mentor</span>
+                    <span class="text-xs text-gray-500 mt-1">Diskusi & Tanya jawab</span>
                 </a>
                 <a :href="routes.reward"
-                    class="bg-white shadow rounded-lg p-4 sm:p-6 flex flex-row sm:flex-col items-center justify-start sm:justify-center hover:scale-105 transition group gap-4 sm:gap-0">
-                    <span class="text-2xl sm:text-3xl mb-0 sm:mb-2 group-hover:animate-bounce">🎁</span>
-                    <div class="text-left sm:text-center">
-                        <span class="font-bold text-purple-700 block">Ambil Reward</span>
-                        <span class="text-xs text-gray-500 mt-1 block">Cek hadiah & voucher</span>
-                    </div>
+                    class="bg-white shadow rounded-lg p-6 flex flex-col items-center hover:scale-105 transition group">
+                    <span class="text-3xl mb-2 group-hover:animate-bounce">🎁</span>
+                    <span class="font-bold text-purple-700">Ambil Reward</span>
+                    <span class="text-xs text-gray-500 mt-1">Cek hadiah & voucher</span>
                 </a>
             </div>
 
-            <!-- Enhanced Level Progress - Mobile optimized -->
-            <div v-if="!loading && purchasedCourses.length > 0" class="bg-white shadow rounded-lg p-4 sm:p-6 mb-6 sm:mb-10">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                    <div class="flex-1 w-full">
-                        <div class="text-xs text-gray-500 mb-1">Level Kamu</div>
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                            <span class="font-bold text-purple-700 text-base sm:text-lg">Level {{ userLevel }}</span>
-                            <div class="w-full sm:w-40 bg-gray-200 h-3 rounded-full">
-                                <div class="bg-gradient-to-r from-purple-500 to-indigo-500 h-3 rounded-full" :style="{ width: levelProgress + '%' }">
-                                </div>
+            <!-- Enhanced Level Progress -->
+            <div v-if="!loading && purchasedCourses.length > 0" class="bg-white shadow rounded-lg p-6 flex items-center gap-4 mb-10">
+                <div>
+                    <div class="text-xs text-gray-500 mb-1">Level Kamu</div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-purple-700 text-lg">Level {{ userLevel }}</span>
+                        <div class="w-40 bg-gray-200 h-3 rounded-full">
+                            <div class="bg-gradient-to-r from-purple-500 to-indigo-500 h-3 rounded-full" :style="{ width: levelProgress + '%' }">
                             </div>
-                            <span class="text-xs text-gray-500">{{ levelProgress }}% ke Level {{ userLevel + 1 }}</span>
                         </div>
-                        <div class="mt-1 text-xs text-gray-400">
-                            Berdasarkan {{ overallStats.totalCompleted }} materi selesai dari {{ overallStats.totalCourses }} course
-                        </div>
+                        <span class="text-xs text-gray-500">{{ levelProgress }}% ke Level {{ userLevel + 1 }}</span>
                     </div>
-                    <span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-bold">XP: {{ userXP }}</span>
+                    <div class="mt-1 text-xs text-gray-400">
+                        Berdasarkan {{ overallStats.totalCompleted }} materi selesai dari {{ overallStats.totalCourses }} course
+                    </div>
                 </div>
+                <span class="ml-auto bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-bold">XP: {{ userXP }}</span>
             </div>
 
-            <!-- Enhanced Notifications - Mobile optimized -->
-            <div class="bg-white shadow rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
-                <h2 class="text-lg sm:text-2xl font-bold text-purple-800 mb-4 flex items-center gap-2">🔔 Notifikasi Terbaru</h2>
-                <ul class="list-disc pl-4 sm:pl-6 text-xs sm:text-sm text-gray-700 space-y-2">
-                    <li v-for="notification in notifications" :key="notification.id" class="break-words">
+            <!-- Enhanced Notifications -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-purple-800 mb-4 flex items-center gap-2">🔔 Notifikasi Terbaru</h2>
+                <ul class="list-disc pl-6 text-sm text-gray-700 space-y-2">
+                    <li v-for="notification in notifications" :key="notification.id">
                         <span :class="notification.badgeClass">{{ notification.type }}</span>
                         {{ notification.message }}
-                        <span v-if="notification.timestamp" class="text-xs text-gray-400 block sm:inline ml-0 sm:ml-2 mt-1 sm:mt-0">
+                        <span v-if="notification.timestamp" class="text-xs text-gray-400 ml-2">
                             {{ formatDate(notification.timestamp) }}
                         </span>
                     </li>
                 </ul>
-                <a href="#" class="block text-right text-purple-700 hover:underline mt-2 text-xs sm:text-sm font-bold">Lihat Semua Notifikasi</a>
+                <a href="#" class="block text-right text-purple-700 hover:underline mt-2 text-sm font-bold">Lihat Semua Notifikasi</a>
             </div>
 
-            <!-- Enhanced Leaderboard - Mobile optimized -->
-            <div v-if="!loading && purchasedCourses.length > 0" class="bg-white shadow rounded-lg p-4 sm:p-6 mt-6 sm:mt-8">
-                <h3 class="text-base sm:text-lg font-bold text-purple-800 mb-2 flex items-center gap-2">🏆 Leaderboard Mingguan</h3>
-                <ol class="list-decimal pl-4 sm:pl-6 text-gray-700 text-xs sm:text-sm space-y-1">
-                    <li class="break-words">
-                        <span class="font-bold text-purple-700">Kamu</span> - {{ userXP }} XP
+            <!-- Enhanced Leaderboard -->
+            <div v-if="!loading && purchasedCourses.length > 0" class="bg-white shadow rounded-lg p-6 mt-8">
+                <h3 class="text-lg font-bold text-purple-800 mb-2 flex items-center gap-2">🏆 Leaderboard Mingguan</h3>
+                <ol class="list-decimal pl-6 text-gray-700 text-sm space-y-1">
+                    <li><span class="font-bold text-purple-700">Kamu</span> - {{ userXP }} XP
                         <span class="ml-2 bg-green-200 text-green-800 px-2 py-0.5 rounded-full text-xs">TOP 1</span>
-                        <span class="block sm:inline ml-0 sm:ml-2 text-xs text-gray-500 mt-1 sm:mt-0">({{ overallStats.totalCompleted }} materi selesai)</span>
+                        <span class="ml-2 text-xs text-gray-500">({{ overallStats.totalCompleted }} materi selesai)</span>
                     </li>
                     <li>Bregas - 1100 XP</li>
                     <li>Yafa - 950 XP</li>
                 </ol>
             </div>
 
-            <!-- Debug Buttons (development only) - Mobile optimized -->
-            <div v-if="!loading && purchasedCourses.length === 0 && !isPostPurchaseScenario" class="mt-6 text-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <!-- Debug Buttons (development only) -->
+            <div v-if="!loading && purchasedCourses.length === 0 && !isPostPurchaseScenario" class="mt-6 text-center">
                 <button
                     @click="manualRefreshCourses"
-                    class="w-full sm:w-auto bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm"
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition mr-4"
                 >
                     🔄 Refresh Manual
                 </button>
                 <button
                     @click="debugCourseData"
-                    class="w-full sm:w-auto bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm"
+                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
                 >
                     🔧 Debug Data
                 </button>
@@ -695,7 +679,7 @@ export default {
             try {
                 console.log(`📊 Loading progress for course ${courseId}...`);
 
-                const response = await axios.get(`http://localhost:8000/api/course-content/course/${courseId}`);
+                const response = await axios.get(`https://itqom-platform-aa0ffce6a276.herokuapp.com/api/course-content/course/${courseId}`);
 
                 if (response.data.success) {
                     const courseData = response.data.data;
@@ -792,7 +776,7 @@ export default {
         // ===== SETUP AXIOS =====
         setupAxios() {
             if (!axios.defaults.baseURL) {
-                axios.defaults.baseURL = 'http://localhost:8000';
+                axios.defaults.baseURL = 'https://itqom-platform-aa0ffce6a276.herokuapp.com';
             }
 
             axios.defaults.headers.common['Accept'] = 'application/json';
@@ -1319,9 +1303,6 @@ export default {
 </script>
 
 <style scoped>
-/* Mobile-first responsive design */
-
-/* Base animations */
 .animate-float {
     animation: float 6s ease-in-out infinite;
 }
@@ -1354,11 +1335,34 @@ export default {
     }
 }
 
-/* Smooth transitions */
 .transition {
     transition-property: all;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 300ms;
+}
+
+.opacity-0 {
+    opacity: 0;
+}
+
+.opacity-100 {
+    opacity: 1;
+}
+
+.pointer-events-none {
+    pointer-events: none;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+.ring-2 {
+    box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.4);
 }
 
 .transition-all {
@@ -1370,20 +1374,6 @@ export default {
     transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Loading spinner */
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.animate-spin {
-    animation: spin 1s linear infinite;
-}
-
-/* Ring effects */
-.ring-2 {
-    box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.4);
-}
-
 /* Milestone celebration effect */
 @keyframes milestone-glow {
     0% { box-shadow: 0 0 5px rgba(147, 51, 234, 0.3); }
@@ -1393,196 +1383,5 @@ export default {
 
 .milestone-achieved {
     animation: milestone-glow 2s ease-in-out;
-}
-
-/* Mobile-specific optimizations */
-@media (max-width: 640px) {
-    /* Ensure touch targets are at least 44px */
-    button, .button, a[role="button"] {
-        min-height: 44px;
-        min-width: 44px;
-    }
-
-    /* Improve readability on small screens */
-    .text-xs {
-        font-size: 0.75rem;
-        line-height: 1.2;
-    }
-
-    /* Better spacing for mobile */
-    .space-y-1 > * + * {
-        margin-top: 0.5rem;
-    }
-
-    /* Prevent horizontal overflow */
-    .break-words {
-        word-wrap: break-word;
-        word-break: break-word;
-        hyphens: auto;
-    }
-
-    /* Improve tap targets */
-    .hover\:scale-105:hover {
-        transform: scale(1.02); /* Reduce scale on mobile for better performance */
-    }
-}
-
-/* Tablet optimizations */
-@media (min-width: 641px) and (max-width: 1024px) {
-    /* Grid adjustments for tablet */
-    .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-/* Desktop optimizations */
-@media (min-width: 1025px) {
-    /* Full hover effects on desktop */
-    .hover\:scale-105:hover {
-        transform: scale(1.05);
-    }
-
-    /* Better shadows on larger screens */
-    .shadow-lg {
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-}
-
-/* Accessibility improvements */
-@media (prefers-reduced-motion: reduce) {
-    .animate-spin,
-    .animate-bounce,
-    .animate-float,
-    .transition,
-    .transition-all {
-        animation: none;
-        transition: none;
-    }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    .bg-gradient-to-r {
-        background: #7c3aed; /* Fallback solid color */
-    }
-
-    .text-purple-800 {
-        color: #000;
-    }
-
-    .text-gray-600 {
-        color: #333;
-    }
-}
-
-/* Print styles */
-@media print {
-    .shadow,
-    .shadow-lg,
-    .shadow-xl {
-        box-shadow: none;
-    }
-
-    .bg-gradient-to-r {
-        background: #f3f4f6 !important;
-        color: #000 !important;
-    }
-
-    button,
-    .button {
-        display: none;
-    }
-}
-
-/* Focus styles for accessibility */
-button:focus,
-a:focus,
-[tabindex]:focus {
-    outline: 2px solid #7c3aed;
-    outline-offset: 2px;
-}
-
-/* Improve touch scrolling on iOS */
-.overflow-auto {
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Better text rendering */
-body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-}
-
-/* Custom scrollbar for webkit browsers */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #a1a1a1;
-}
-
-/* Loading state improvements */
-.loading-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-}
-
-/* Enhanced mobile card layouts */
-@media (max-width: 640px) {
-    .card-mobile {
-        margin-left: -0.75rem;
-        margin-right: -0.75rem;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-    }
-
-    .card-mobile:first-child {
-        margin-top: -1rem;
-        border-top: none;
-    }
-
-    .card-mobile:last-child {
-        margin-bottom: -1rem;
-        border-bottom: none;
-    }
-}
-
-/* Safe area adjustments for notched devices */
-@supports (padding: max(0px)) {
-    .safe-area-top {
-        padding-top: max(1rem, env(safe-area-inset-top));
-    }
-
-    .safe-area-bottom {
-        padding-bottom: max(1rem, env(safe-area-inset-bottom));
-    }
-
-    .safe-area-left {
-        padding-left: max(0.75rem, env(safe-area-inset-left));
-    }
-
-    .safe-area-right {
-        padding-right: max(0.75rem, env(safe-area-inset-right));
-    }
 }
 </style>
