@@ -35,10 +35,10 @@ public function createSnapToken(Request $request)
             Log::info('Payment request received', $request->all());
 
             // FIXED: Validation dengan nama tabel yang benar
-            $request->validate([
-                'course_id' => 'required|exists:course_description,id', // ✅ FIXED: course_description bukan courses
-                'amount' => 'required|numeric|min:1'
-            ]);
+        $request->validate([
+            'course_id' => 'required|exists:course_description,id',
+            'amount' => 'required|numeric|min:1'
+        ]);
 
             // PERBAIKAN UTAMA: RESOLVE USER ID DENGAN BENAR
             $authUser = $request->user();
@@ -199,21 +199,21 @@ public function createSnapToken(Request $request)
 
             // FIXED: Get course data dari tabel yang benar
             $course = DB::table('course_description')->where('id', $courseId)->first();
-            if (!$course) {
-                Log::error('Course not found in course_description table', [
-                    'course_id' => $courseId,
-                    'available_courses' => DB::table('course_description')->pluck('id', 'title')
-                ]);
+        if (!$course) {
+            Log::error('Course not found', [
+                'course_id' => $courseId,
+                'available_courses' => DB::table('course_description')->pluck('id', 'title')
+            ]);
 
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Course not found',
-                    'debug_info' => [
-                        'course_id' => $courseId,
-                        'table_checked' => 'course_description'
-                    ]
-                ], 404);
-            }
+            return response()->json([
+                'success' => false,
+                'error' => 'Course not found',
+                'debug_info' => [
+                    'course_id' => $courseId,
+                    'table_checked' => 'course_description'
+                ]
+            ], 404);
+        }
 
             // Generate unique order ID
             $orderId = 'ORDER-' . $courseId . '-' . $userProfileId . '-' . uniqid();
@@ -729,23 +729,19 @@ public function checkPaymentStatus(Request $request, $orderId)
      * Check if user already purchased a course - ENDPOINT BARU
      */
     public function checkCoursePurchase(Request $request)
-    {
-        try {
-            // Get authenticated user
-            $user = $request->user();
+{
+    try {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'error' => 'User not authenticated'], 401);
+        }
 
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'User not authenticated'
-                ], 401);
-            }
 
             // FIXED: Validate course_id dengan tabel yang benar
-            $request->validate([
-                'course_id' => 'required|exists:course_description,id', // ✅ FIXED
-                'user_profile_id' => 'required|exists:users_profile,id'
-            ]);
+        $request->validate([
+            'course_id' => 'required|exists:course_description,id', // Make sure this is consistent
+            'user_profile_id' => 'required|exists:users_profile,id'
+        ]);
 
             $courseId = $request->course_id;
             $userProfileId = $user->id;
