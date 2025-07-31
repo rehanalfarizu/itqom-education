@@ -1,6 +1,6 @@
 <template>
     <section class="bg-gray-50 min-h-screen text-gray-800 font-sans">
-        <div class="max-w-6xl mx-auto px-3 sm:px-6 pt-16 sm:pt-24">
+        <div class="max-w-6xl mx-auto px-3 sm:px-6 pt-10 sm:pt-24">
 
             <!-- Header Mobile Optimized -->
             <div class="mb-6 sm:mb-10 text-center sm:text-left">
