@@ -6,7 +6,7 @@ use App\Filament\Resources\CourseDescriptionResource; // Sesuaikan resource
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListCourseDescriptions extends ListRecords // Sesuaikan nama kelas
+class ListCourseDescription extends ListRecords // Sesuaikan nama kelas
 {
     protected static string $resource = CourseDescriptionResource::class; // Sesuaikan resource
 

@@ -10,7 +10,7 @@ use Midtrans\Config;
 use Midtrans\Notification;
 use Midtrans\Transaction;
 use App\Models\Payment;
-use App\Models\CourseDescriptions;
+use App\Models\CourseDescription;
 use App\Models\UserProfile;
 use Exception;
 
