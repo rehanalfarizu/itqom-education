@@ -29,6 +29,6 @@ class Course extends Model
     // Relasi ke CourseDescription
     public function courseDescription()
     {
-        return $this->belongsTo(CourseDescriptions::class, 'course_description_id');
+        return $this->belongsTo(CourseDescription::class, 'course_description_id');
     }
 }
