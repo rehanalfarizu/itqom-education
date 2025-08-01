@@ -78,22 +78,42 @@ class CourseContentController extends Controller
             $totalMaterisFromCourseDescription = 0;
 
             // First, try to get materials from CourseContent JSON
-            if ($courseContent && is_array($courseContent->materials)) {
-                // Extract materials from JSON and format them
-                $materis = collect($courseContent->materials)
-                    ->map(function ($material, $index) use ($courseContent) {
-                        return [
-                            'id' => $index + 1, // Use index as ID since materials are in array
-                            'slug' => $courseContent->slug . '-materi-' . ($material['urutan'] ?? ($index + 1)),
-                            'judul' => $material['judul'] ?? 'Materi ' . ($index + 1),
-                            'konten' => $material['konten'] ?? '<p>Konten akan segera tersedia.</p>',
-                            'urutan' => $material['urutan'] ?? ($index + 1),
-                            'course_title' => '<span style="color:red">' . ($courseContent->course_title ?: ($courseDescription->title ?? '')) . '</span>',
-                            'course_description_id' => $courseContent->course_description_id
-                        ];
-                    })
-                    ->sortBy('urutan')
-                    ->values();
+            if ($courseContent && !empty($courseContent->materials)) {
+                try {
+                    // Safely decode materials if it's a string
+                    $materials = $courseContent->materials;
+                    if (is_string($materials)) {
+                        $materials = json_decode($materials, true);
+                    }
+
+                    if (is_array($materials)) {
+                        // Extract materials from JSON and format them
+                        $materis = collect($materials)
+                            ->map(function ($material, $index) use ($courseContent, $courseDescription) {
+                                return [
+                                    'id' => $index + 1,
+                                    'slug' => ($courseContent->slug ?? 'course-' . $courseContent->course_description_id) . '-materi-' . ($material['urutan'] ?? ($index + 1)),
+                                    'judul' => $material['judul'] ?? 'Materi ' . ($index + 1),
+                                    'konten' => $material['konten'] ?? '<p>Konten akan segera tersedia.</p>',
+                                    'urutan' => $material['urutan'] ?? ($index + 1),
+                                    'course_title' => $courseContent->course_title ?? $courseDescription->title ?? 'Unknown Course',
+                                    'course_description_id' => $courseContent->course_description_id
+                                ];
+                            })
+                            ->sortBy('urutan')
+                            ->values();
+                    } else {
+                        $materis = collect();
+                    }
+                } catch (Exception $materialsException) {
+                    Log::warning('Error processing materials JSON', [
+                        'course_id' => $courseDescriptionId,
+                        'error' => $materialsException->getMessage()
+                    ]);
+                    $materis = collect();
+                }
+            } else {
+                $materis = collect();
             }
 
             // If no materials in CourseContent, get count from CourseDescriptions
