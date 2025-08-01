@@ -1,9 +1,14 @@
 <?php
 
 return [
-    'cloud' => env('CLOUDINARY_CLOUD_NAME'),
-    'key' => env('CLOUDINARY_API_KEY'),  
-    'secret' => env('CLOUDINARY_API_SECRET'),
-    'secure' => true,
-    'folder' => env('CLOUDINARY_FOLDER', ''),
+    'cloud' => [
+        'cloud_name' => 'hltd67bzw',
+        'api_key'    => '889987677545791',
+        'api_secret' => 's9rw45O-qjDY3lpNgmY8_RP0uN8',
+        'url' => [
+            'secure' => true
+        ]
+    ],
+    
+    'folder' => 'itqom-platform',
 ];

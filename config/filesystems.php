@@ -57,8 +57,8 @@ return [
         ],
 
                 // ADD: Cloudinary disk configuration
-'cloudinary' => [
-    'driver' => 'cloudinary',
+            'cloudinary' => [
+            'driver' => 'cloudinary',
 ],
 
     ],

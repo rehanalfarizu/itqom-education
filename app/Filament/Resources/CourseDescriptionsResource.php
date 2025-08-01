@@ -10,7 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 
-class CourseDescriptionsResource extends Resource
+class CourseDescriptionResource extends Resource
 {
     protected static ?string $model = CourseDescriptions::class;
 
