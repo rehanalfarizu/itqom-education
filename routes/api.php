@@ -107,6 +107,8 @@
                 ]);
             });
         });
+    Route::post('/profile/change-password', [UserProfileController::class, 'changePassword']);
+
 
     Route::get('/test-midtrans-config', function() {
         try {
@@ -153,3 +155,4 @@
             });
         });
     });
+
