@@ -35,27 +35,28 @@ class CourseController extends Controller
 
     public function show($id)
     {
-        $course = Course::with('courseDescription')->find($id);
+        // Langsung ambil dari CourseDescription karena itu sumber data utama
+        $courseDescription = CourseDescription::find($id);
 
-        if (!$course || !$course->courseDescription) {
+        if (!$courseDescription) {
             return response()->json(['message' => 'Course not found'], 404);
         }
 
         $flattenedData = [
-            'id' => $course->id,
-            'title' => $course->courseDescription->title,
-            'tag' => $course->courseDescription->tag,
-            'overview' => $course->courseDescription->overview,
-            'image_url' => $course->courseDescription->image_url,
-            'thumbnail' => $course->courseDescription->thumbnail,
-            'price' => $course->courseDescription->price_discount ?? $course->courseDescription->price,
-            'price_discount' => $course->courseDescription->price_discount,
-            'instructor_name' => $course->courseDescription->instructor_name,
-            'instructor_position' => $course->courseDescription->instructor_position,
-            'instructor_image_url' => $course->courseDescription->instructor_image_url,
-            'video_count' => $course->courseDescription->video_count,
-            'duration' => $course->courseDescription->duration,
-            'features' => $course->courseDescription->features ?? [],
+            'id' => $courseDescription->id,
+            'title' => $courseDescription->title,
+            'tag' => $courseDescription->tag,
+            'overview' => $courseDescription->overview,
+            'image_url' => $courseDescription->image_url,
+            'thumbnail' => $courseDescription->thumbnail,
+            'price' => $courseDescription->price_discount ?? $courseDescription->price,
+            'price_discount' => $courseDescription->price_discount,
+            'instructor_name' => $courseDescription->instructor_name,
+            'instructor_position' => $courseDescription->instructor_position,
+            'instructor_image_url' => $courseDescription->instructor_image_url,
+            'video_count' => $courseDescription->video_count,
+            'duration' => $courseDescription->duration,
+            'features' => $courseDescription->features ?? [],
         ];
 
         return response()->json($flattenedData);
