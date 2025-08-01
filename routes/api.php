@@ -22,8 +22,17 @@ Route::post('/login', [AuthController::class, 'login']);
 // Public Course Routes
 Route::get('/courses', [CourseController::class, 'index']);
 Route::get('/courses/{id}', [CourseController::class, 'show']);
-// Public Course Description Route
 Route::get('/course-description/{id}', [CourseController::class, 'showByDescription']);
+
+// Public Course Content Routes
+Route::prefix('course-content')->group(function () {
+    Route::get('/course/{id}', [CourseContentController::class, 'getByCourseDescription']);
+    Route::get('/slug/{slug}', [CourseContentController::class, 'getBySlug']);
+    Route::get('/navigation/{id}', [CourseContentController::class, 'getNavigation']);
+    Route::get('/prev-next/{slug}', [CourseContentController::class, 'getPrevNext']);
+    Route::get('/search', [CourseContentController::class, 'search']);
+    Route::get('/all', [CourseContentController::class, 'index']);
+});
 
 // Public Payment Routes (untuk Midtrans callback)
 Route::post('/payment/notification', [PaymentController::class, 'handleNotification']);
@@ -78,12 +87,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Protected Course Content Routes
     Route::prefix('protected/course-content')->group(function () {
         Route::get('/course/{id}', [CourseContentController::class, 'getByCourseDescription']);
-        Route::get('/slug/{slug}', [CourseContentController::class, 'getBySlug']);
-        Route::get('/navigation/{id}', [CourseContentController::class, 'getNavigation']);
-        Route::get('/prev-next/{slug}', [CourseContentController::class, 'getPrevNext']);
-        Route::get('/search', [CourseContentController::class, 'search']);
-        Route::get('/all', [CourseContentController::class, 'index']);
-        
         Route::post('/progress/{courseId}', function (Request $request, $courseId) {
             $user = $request->user();
             $progress = $request->input('progress', []);
@@ -128,8 +131,6 @@ Route::get('/test-midtrans-config', function() {
         ], 500);
     }
 });
-    //profilepassword
-    Route::post('/profile/change-password', [UserProfileController::class, 'changePassword']);
 
     // Debug routes - MOVED to protected
     Route::prefix('debug')->group(function () {

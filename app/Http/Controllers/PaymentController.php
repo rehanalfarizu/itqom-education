@@ -178,7 +178,7 @@ public function createSnapToken(Request $request)
                 ->where('user_profile_id', $userProfileId)
                 ->where('course_id', $courseId)
                 ->where('status', 'pending')
-                ->where('created_at', '>', now()->subSeconds(30))
+                ->where('created_at', '>', now()->subMinutes(30))
                 ->first();
 
             if ($existingPendingPayment) {
@@ -463,18 +463,32 @@ public function checkPaymentStatus(Request $request, $orderId)
         }
 
         // Verify user ownership (if authenticated)
-        if ($request->user() && $payment->user_profile_id != $request->user()->id) {
-            Log::warning('Unauthorized payment status check', [
-                'order_id' => $orderId,
-                'payment_user_id' => $payment->user_profile_id,
-                'request_user_id' => $request->user()->id
-            ]);
+        if ($request->user()) {
+            // Get user's profile ID
+            $userProfile = $request->user()->profile;
+            if (!$userProfile) {
+                Log::error('User has no profile', ['user_id' => $request->user()->id]);
+                return response()->json([
+                    'success' => false,
+                    'error' => 'User profile not found',
+                    'payment_status' => 'profile_error'
+                ], 400);
+            }
 
-            return response()->json([
-                'success' => false,
-                'error' => 'Unauthorized access to payment',
-                'payment_status' => 'unauthorized'
-            ], 403);
+            if ($payment->user_profile_id != $userProfile->id) {
+                Log::warning('Unauthorized payment status check', [
+                    'order_id' => $orderId,
+                    'payment_user_profile_id' => $payment->user_profile_id,
+                    'request_user_profile_id' => $userProfile->id,
+                    'request_user_id' => $request->user()->id
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Unauthorized access to payment',
+                    'payment_status' => 'unauthorized'
+                ], 403);
+            }
         }
 
         try {
