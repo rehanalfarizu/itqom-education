@@ -1,4 +1,5 @@
 <?php
+// 1. app/Providers/Filament/AdminPanelProvider.php (Modified)
 
 namespace App\Providers\Filament;
 
@@ -25,7 +26,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('/admin') // Added leading slash
+            ->path('/admin')
             ->login()
             ->colors([
                 'primary' => Color::Amber,
@@ -39,7 +40,6 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
-                // Commented out custom widget if it causes issues
                 \App\Filament\Widgets\PaymentChart::class,
             ])
             ->middleware([
@@ -54,9 +54,11 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-            \Illuminate\Auth\Middleware\Authenticate::class,
+                \Illuminate\Auth\Middleware\Authenticate::class,
             ])
-            // Add this to debug auth issues
-            ->authGuard('web'); // Make sure using correct guard
+            ->authGuard('web')
+            // Tambahkan loading overlay hooks
+            ->renderHook('panels::body.end', fn() => view('admin.components.loading-overlay'))
+            ->renderHook('panels::head.end', fn() => view('admin.components.loading-styles'));
     }
 }

@@ -1,4 +1,4 @@
-    <?php
+<?php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -191,6 +191,8 @@ Route::middleware('auth:sanctum')->group(function () {
                 ]);
             });
         });
+
+    //API ganti password
     Route::post('/profile/change-password', [UserProfileController::class, 'changePassword']);
 
 
@@ -215,8 +217,8 @@ Route::middleware('auth:sanctum')->group(function () {
         }
     });
 
-        // Debug routes - MOVED to protected
-        Route::prefix('debug')->group(function () {
+    // Debug routes - MOVED to protected
+    Route::prefix('debug')->group(function () {
             Route::get('/database', [CourseController::class, 'debugDatabase']);
             Route::get('/my-courses', [CourseController::class, 'myCourses']);
             Route::get('/raw-payments', function(Request $request) {
@@ -230,11 +232,11 @@ Route::middleware('auth:sanctum')->group(function () {
                         ->get()
                 ]);
             });
-            Route::get('/table-structure', function() {
-                return response()->json([
-                    'payments' => DB::select("SHOW COLUMNS FROM payments"),
-                    'courses' => DB::select("SHOW COLUMNS FROM courses"),
-                    'course_descriptions' => DB::select("SHOW COLUMNS FROM course_descriptions")
+    Route::get('/table-structure', function() {
+            return response()->json([
+            'payments' => DB::select("SHOW COLUMNS FROM payments"),
+            'courses' => DB::select("SHOW COLUMNS FROM courses"),
+            'course_descriptions' => DB::select("SHOW COLUMNS FROM course_descriptions")
                 ]);
             });
         });
