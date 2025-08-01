@@ -12,20 +12,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users_profile', function (Blueprint $table) {
+        Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('fullname')->nullable(); // Mengizinkan kosong
-            $table->string('username')->unique()->nullable(); // Mengizinkan kosong, tapi unik jika ada
-            $table->date('dob')->nullable(); // Tanggal lahir
-            $table->string('email')->unique(); // Email profil, harus unik
-            $table->text('bio')->nullable();
-            $table->json('hobbies')->nullable(); // Bisa simpan array JSON
-            $table->string('avatar')->nullable(); // path ke gambar
-            $table->json('badges')->nullable(); // Mengubah ke JSON untuk fleksibilitas
-            $table->integer('level')->default(1);
-            $table->integer('progress')->default(0); // persentase ke level berikutnya
+            $table->foreignId('user_profile_id')->constrained('users_profile')->onDelete('cascade');
+            $table->foreignId('course_id')->constrained('course_description')->onDelete('cascade');
+            $table->string('order_id')->unique();
+            $table->decimal('amount', 10, 2);
+            $table->enum('status', ['pending', 'success', 'failed', 'cancelled', 'expired', 'challenge'])->default('pending');
+            $table->string('snap_token')->nullable();
+            $table->string('payment_type')->nullable();
+            $table->string('transaction_id')->nullable();
+            $table->timestamp('transaction_time')->nullable();
+            $table->string('transaction_status')->nullable();
+            $table->string('fraud_status')->nullable();
             $table->timestamps();
+
+            // Indexes for better performance
+            $table->index(['user_profile_id', 'status']);
+            $table->index(['course_id', 'status']);
+            $table->index('order_id');
         });
     }
 
@@ -34,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users_profile');
+        Schema::dropIfExists('payments');
     }
 };
