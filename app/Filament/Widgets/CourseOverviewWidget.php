@@ -28,7 +28,7 @@ class CourseOverviewWidget extends Widget
         $data = Cache::remember('course_overview_data', 300, function () {
             return [
                 'totalCourses' => Course::count(),
-                'activeCourses' => Course::where('is_active', true)->count(),
+                'activeCourses' => Course::whereNotNull('title')->count(), // Courses yang memiliki title sebagai active
                 'totalStudents' => Course::withCount('userCourses')->get()->sum('user_courses_count'),
                 'recentCourses' => Course::with(['courseDescriptions', 'userCourses'])
                     ->latest()
@@ -39,10 +39,10 @@ class CourseOverviewWidget extends Widget
                             'id' => $course->id,
                             'title' => $course->title,
                             'description' => $course->courseDescriptions->first()?->description ?? 'No description',
-                            'thumbnail' => $course->thumbnail_url,
+                            'thumbnail' => $course->image, // Gunakan field image yang ada
                             'students_count' => $course->userCourses->count(),
                             'duration' => $this->calculateCourseDuration($course),
-                            'level' => $course->level ?? 'Beginner',
+                            'level' => $course->category ?? 'General', // Gunakan category sebagai level
                             'price' => $course->price,
                             'rating' => $this->calculateCourseRating($course),
                             'created_at' => $course->created_at,
@@ -66,15 +66,27 @@ class CourseOverviewWidget extends Widget
 
     private function calculateCourseDuration(Course $course): string
     {
-        // Calculate total course duration from course contents
-        $totalMinutes = $course->courseContents->sum('duration_minutes') ?? 0;
-
-        if ($totalMinutes < 60) {
-            return $totalMinutes . ' min';
+        // Gunakan field duration yang sudah ada di tabel courses
+        if ($course->duration) {
+            return $course->duration;
         }
 
-        $hours = floor($totalMinutes / 60);
-        $minutes = $totalMinutes % 60;
+        // Fallback: hitung berdasarkan jumlah materials jika ada
+        $totalContents = $course->courseContents->count() ?? 0;
+
+        if ($totalContents == 0) {
+            return '0 min';
+        }
+
+        // Estimasi 5 menit per content
+        $estimatedMinutes = $totalContents * 5;
+
+        if ($estimatedMinutes < 60) {
+            return $estimatedMinutes . ' min';
+        }
+
+        $hours = floor($estimatedMinutes / 60);
+        $minutes = $estimatedMinutes % 60;
 
         return $hours . 'h ' . ($minutes > 0 ? $minutes . 'm' : '');
     }

@@ -88,7 +88,7 @@
         );
         background-size: 200% 100%;
     }
-    
+
     .loading-overlay {
         background: rgba(15, 23, 42, 0.8);
     }

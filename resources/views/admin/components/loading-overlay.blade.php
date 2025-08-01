@@ -10,14 +10,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Show loading overlay on page transitions
     const overlay = document.getElementById('loading-overlay');
-    
+
     // Show loading on form submissions
     document.addEventListener('submit', function() {
         if (overlay) {
             overlay.style.display = 'flex';
         }
     });
-    
+
     // Show loading on navigation
     document.addEventListener('click', function(e) {
         const link = e.target.closest('a[href]');
@@ -27,14 +27,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    
+
     // Hide loading overlay when page is loaded
     window.addEventListener('load', function() {
         if (overlay) {
             overlay.style.display = 'none';
         }
     });
-    
+
     // Hide loading overlay on back/forward navigation
     window.addEventListener('pageshow', function() {
         if (overlay) {
