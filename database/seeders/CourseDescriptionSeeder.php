@@ -22,9 +22,9 @@ class CourseDescriptionSeeder extends Seeder
             'video_count' => 85,
             'duration' => 45,
             'features' => [
-                ['value' => 'Full Lifetime Access'],
-                ['value' => 'Certificate of Completion'],
-                ['value' => 'Downloadable Resources']
+                'Full Lifetime Access',
+                'Certificate of Completion',
+                'Downloadable Resources'
             ]
         ]);
 
