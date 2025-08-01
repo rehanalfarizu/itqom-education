@@ -22,7 +22,7 @@ Route::get('/tentang', function () {
 // Route fallback untuk semua frontend SPA (Vue)
 Route::get('/{any}', function () {
     return view('homepage');
-})->where('any', '^(?!api|admin).*$');
+})->where('any', '^(?!api|admin|livewire).*$');
 
 // Auth (kalau ini ditujukan untuk frontend, lebih baik dipindah ke api.php)
 Route::post('/register', [AuthController::class, 'register']);
