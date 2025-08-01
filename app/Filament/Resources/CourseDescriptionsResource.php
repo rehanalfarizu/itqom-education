@@ -237,7 +237,7 @@ class CourseDescriptionsResource extends Resource
 public static function getPages(): array
 {
     return [
-        'index' => Pages\ListCourseDescriptions::route('/'),
+        'index' => Pages\ListCourseDescription::route('/'),
         'create' => Pages\CreateCourseDescription::route('/create'),
         'edit' => Pages\EditCourseDescription::route('/{record}/edit'),
     ];
