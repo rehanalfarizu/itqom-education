@@ -76,6 +76,54 @@
     }
 }
 
+/* Burger Menu Integration Styles */
+@media (max-width: 1024px) {
+    /* Hide default Filament sidebar on mobile */
+    .fi-sidebar {
+        display: none !important;
+    }
+    
+    /* Adjust main content area for mobile */
+    .fi-main {
+        margin-left: 0 !important;
+    }
+    
+    /* Adjust topbar for burger menu */
+    .fi-topbar {
+        padding-left: 1rem !important;
+    }
+}
+
+/* Burger menu z-index management */
+.fi-topbar {
+    position: relative;
+    z-index: 30;
+}
+
+/* Mobile navigation improvements */
+@media (max-width: 768px) {
+    /* Ensure burger menu is always visible */
+    .mobile-burger-menu {
+        position: relative;
+        z-index: 60;
+    }
+    
+    /* Adjust Filament components for mobile */
+    .fi-header-heading {
+        font-size: 1.25rem !important;
+    }
+    
+    .fi-breadcrumbs {
+        display: none !important;
+    }
+    
+    /* Mobile-friendly widgets */
+    .fi-wi-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
     .shimmer {
@@ -88,7 +136,7 @@
         );
         background-size: 200% 100%;
     }
-
+    
     .loading-overlay {
         background: rgba(15, 23, 42, 0.8);
     }
@@ -98,6 +146,51 @@
 @media (max-width: 768px) {
     .shimmer {
         animation-duration: 2s;
+    }
+    
+    /* Smooth mobile interactions */
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Better touch targets */
+    button, a {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* Burger menu specific styles */
+.burger-menu-overlay {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Animation for burger menu */
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.slide-in-left {
+    animation: slideInFromLeft 0.3s ease-out;
+}
+
+/* Responsive topbar adjustments */
+@media (max-width: 1024px) {
+    .fi-topbar-start {
+        flex: 1;
+        justify-content: flex-start;
+    }
+    
+    .fi-topbar-end {
+        flex: none;
     }
 }
 </style>

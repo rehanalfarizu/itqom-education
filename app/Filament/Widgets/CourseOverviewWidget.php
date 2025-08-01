@@ -11,19 +11,19 @@ use Illuminate\Support\Facades\Cache;
 class CourseOverviewWidget extends Widget
 {
     protected static string $view = 'filament.widgets.course-overview';
-    
+
     protected int | string | array $columnSpan = 'full';
-    
+
     protected static ?int $sort = 1;
-    
+
     public bool $isLoading = true;
-    
+
     public function mount(): void
     {
         // Simulate loading delay for demonstration
         $this->isLoading = true;
     }
-    
+
     public function getViewData(): array
     {
         // Use cache to improve performance
@@ -33,7 +33,7 @@ class CourseOverviewWidget extends Widget
             $totalEnrollments = UserCourse::count();
             $completedCourses = UserCourse::where('is_completed', true)->count();
             $activeEnrollments = UserCourse::where('is_completed', false)->count();
-            
+
             // Get recent enrollments with course details
             $recentEnrollments = UserCourse::with(['user', 'course'])
                 ->latest('enrolled_at')
@@ -53,7 +53,7 @@ class CourseOverviewWidget extends Widget
                         'completed_at' => $enrollment->completed_at,
                     ];
                 });
-            
+
             // Get popular courses (most enrolled)
             $popularCourses = UserCourse::selectRaw('course_id, COUNT(*) as enrollment_count')
                 ->with('course')
@@ -69,7 +69,7 @@ class CourseOverviewWidget extends Widget
                         'course_id' => $item->course_id,
                     ];
                 });
-                
+
             // Calculate monthly statistics
             $thisMonth = UserCourse::whereMonth('enrolled_at', now()->month)
                 ->whereYear('enrolled_at', now()->year)
@@ -77,9 +77,9 @@ class CourseOverviewWidget extends Widget
             $lastMonth = UserCourse::whereMonth('enrolled_at', now()->subMonth()->month)
                 ->whereYear('enrolled_at', now()->subMonth()->year)
                 ->count();
-            
+
             $growthRate = $lastMonth > 0 ? round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1) : 100;
-            
+
             return [
                 'totalCourses' => $totalCourses,
                 'totalEnrollments' => $totalEnrollments,
@@ -95,10 +95,10 @@ class CourseOverviewWidget extends Widget
                 ]
             ];
         });
-        
+
         return $data;
     }
-    
+
     public function loadData()
     {
         $this->isLoading = false;
