@@ -74,21 +74,21 @@ class CourseContentController extends Controller
                 'content_found' => $courseContent ? true : false
             ]);
 
-            $materis = collect([]);
+            $materis = [];
             $totalMaterisFromCourseDescription = 0;
 
             // First, try to get materials from CourseContent JSON
-            if ($courseContent && $courseContent->materials && is_array($courseContent->materials)) {
+            if ($courseContent && is_array($courseContent->materials)) {
                 // Extract materials from JSON and format them
                 $materis = collect($courseContent->materials)
-                    ->map(function ($material, $index) use ($courseContent, $courseDescription) {
+                    ->map(function ($material, $index) use ($courseContent) {
                         return [
                             'id' => $index + 1, // Use index as ID since materials are in array
                             'slug' => $courseContent->slug . '-materi-' . ($material['urutan'] ?? ($index + 1)),
                             'judul' => $material['judul'] ?? 'Materi ' . ($index + 1),
                             'konten' => $material['konten'] ?? '<p>Konten akan segera tersedia.</p>',
                             'urutan' => $material['urutan'] ?? ($index + 1),
-                            'course_title' => $courseContent->course_title ?: ($courseDescription->title ?? ''),
+                            'course_title' => '<span style="color:red">' . ($courseContent->course_title ?: ($courseDescription->title ?? '')) . '</span>',
                             'course_description_id' => $courseContent->course_description_id
                         ];
                     })
@@ -198,19 +198,27 @@ class CourseContentController extends Controller
             }
 
             $results = $searchQuery->get();
+            $searchResults = collect([]);
 
-            $searchResults = [];
-            foreach ($results as $content) {
-                if ($content->materials && is_array($content->materials)) {
-                    foreach ($content->materials as $material) {
-                        if (stripos($material['judul'] ?? '', $query) !== false ||
-                            stripos($material['konten'] ?? '', $query) !== false) {
-                            $searchResults[] = [
-                                'judul' => $material['judul'] ?? 'Untitled',
-                                'konten' => $material['konten'] ?? '',
-                                'course_title' => $content->course_title,
-                                'course_description_id' => $content->course_description_id
-                            ];
+            foreach ($results as $courseContent) {
+                if (is_array($courseContent->materials)) {
+                    foreach ($courseContent->materials as $index => $material) {
+                        $judul = $material['judul'] ?? '';
+                        $konten = $material['konten'] ?? '';
+
+                        if (empty($query) ||
+                            stripos($judul, $query) !== false ||
+                            stripos($konten, $query) !== false) {
+
+                            $searchResults->push([
+                                'id' => $index + 1,
+                                'slug' => $courseContent->slug . '-materi-' . ($material['urutan'] ?? ($index + 1)),
+                                'judul' => $judul ?: 'Materi ' . ($index + 1),
+                                'urutan' => $material['urutan'] ?? ($index + 1),
+                                'course_description_id' => $courseContent->course_description_id,
+                                'course_title' => $courseContent->course_title,
+                                'snippet' => substr(strip_tags($konten), 0, 150) . '...'
+                            ]);
                         }
                     }
                 }
@@ -218,27 +226,32 @@ class CourseContentController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $searchResults,
-                'message' => 'Pencarian berhasil'
+                'data' => $searchResults->sortBy('urutan')->values(),
+                'total' => $searchResults->count(),
+                'query' => $query
             ]);
 
         } catch (Exception $e) {
             Log::error('Error in search: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat pencarian',
+                'message' => 'Gagal melakukan pencarian',
                 'error' => app()->environment('local') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
     }
 
     /**
-     * Get statistics for course progress
+     * NEW METHOD: Get progress statistics for dashboard integration
      */
     public function getProgressStats($courseDescriptionId): JsonResponse
     {
         try {
+            $courseDescriptionId = (int) $courseDescriptionId;
+
+            // Get course description for total materials
             $courseDescription = CourseDescription::find($courseDescriptionId);
+
             if (!$courseDescription) {
                 return response()->json([
                     'success' => false,
@@ -246,11 +259,12 @@ class CourseContentController extends Controller
                 ], 404);
             }
 
+            // Get course content
             $courseContent = CourseContent::where('course_description_id', $courseDescriptionId)->first();
 
             // Calculate total materials
             $totalMaterials = 0;
-            if ($courseContent && $courseContent->materials && is_array($courseContent->materials)) {
+            if ($courseContent && is_array($courseContent->materials)) {
                 $totalMaterials = count($courseContent->materials);
             } else {
                 // Fallback to course description fields
@@ -280,29 +294,75 @@ class CourseContentController extends Controller
         }
     }
 
+    // Keep existing methods unchanged
     public function getBySlug($slug): JsonResponse
     {
         try {
-            $courseContent = CourseContent::where('slug', $slug)->first();
+            if (empty($slug)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Slug tidak boleh kosong'
+                ], 400);
+            }
+
+            // Parse slug to get course content and material info
+            // Format: course-slug-materi-X
+            $parts = explode('-materi-', $slug);
+            if (count($parts) !== 2) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format slug tidak valid'
+                ], 400);
+            }
+
+            $courseSlug = $parts[0];
+            $materialOrder = (int) $parts[1];
+
+            $courseContent = CourseContent::where('slug', $courseSlug)->first();
 
             if (!$courseContent) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Konten tidak ditemukan'
+                    'message' => 'Course dengan slug "' . $courseSlug . '" tidak ditemukan'
+                ], 404);
+            }
+
+            if (!is_array($courseContent->materials)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Materi tidak ditemukan'
+                ], 404);
+            }
+
+            // Find material by urutan
+            $material = collect($courseContent->materials)
+                ->firstWhere('urutan', $materialOrder);
+
+            if (!$material) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Materi dengan urutan "' . $materialOrder . '" tidak ditemukan'
                 ], 404);
             }
 
             return response()->json([
                 'success' => true,
-                'data' => $courseContent,
-                'message' => 'Data berhasil dimuat'
+                'data' => [
+                    'id' => $materialOrder,
+                    'slug' => $slug,
+                    'judul' => $material['judul'] ?? 'Untitled',
+                    'konten' => $material['konten'] ?? '',
+                    'urutan' => $material['urutan'] ?? $materialOrder,
+                    'course_title' => $courseContent->course_title,
+                    'course_description_id' => $courseContent->course_description_id
+                ]
             ]);
 
         } catch (Exception $e) {
             Log::error('Error in getBySlug: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan internal server',
+                'message' => 'Materi tidak ditemukan',
                 'error' => app()->environment('local') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
@@ -311,37 +371,61 @@ class CourseContentController extends Controller
     public function getNavigation($courseDescriptionId): JsonResponse
     {
         try {
-            $courseContent = CourseContent::where('course_description_id', $courseDescriptionId)->first();
+            $courseDescriptionId = (int) $courseDescriptionId;
+            $courseDescription = CourseDescription::find($courseDescriptionId);
 
-            if (!$courseContent || !$courseContent->materials) {
+            if (!$courseDescription) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Navigasi tidak ditemukan'
+                    'message' => 'Course tidak ditemukan'
                 ], 404);
             }
 
-            $navigation = collect($courseContent->materials)
-                ->map(function ($material, $index) {
-                    return [
-                        'id' => $index + 1,
-                        'judul' => $material['judul'] ?? 'Materi ' . ($index + 1),
-                        'urutan' => $material['urutan'] ?? ($index + 1),
-                    ];
-                })
-                ->sortBy('urutan')
-                ->values();
+            $courseContent = CourseContent::where('course_description_id', $courseDescriptionId)->first();
+            $navigation = collect([]);
+
+            if ($courseContent && is_array($courseContent->materials)) {
+                $navigation = collect($courseContent->materials)
+                    ->map(function ($material, $index) use ($courseContent) {
+                        return [
+                            'id' => $index + 1,
+                            'slug' => $courseContent->slug . '-materi-' . ($material['urutan'] ?? ($index + 1)),
+                            'judul' => $material['judul'] ?? 'Materi ' . ($index + 1),
+                            'urutan' => $material['urutan'] ?? ($index + 1)
+                        ];
+                    })
+                    ->sortBy('urutan')
+                    ->values();
+            } else {
+                // Generate navigation from course description
+                $totalMaterials = $courseDescription->video_count ??
+                                $courseDescription->total_materials ??
+                                $courseDescription->material_count ?? 0;
+
+                for ($i = 1; $i <= $totalMaterials; $i++) {
+                    $navigation->push([
+                        'id' => $i,
+                        'slug' => 'course-' . $courseDescriptionId . '-materi-' . $i,
+                        'judul' => 'Materi ' . $i . ' - ' . $courseDescription->title,
+                        'urutan' => $i
+                    ]);
+                }
+            }
 
             return response()->json([
                 'success' => true,
-                'data' => $navigation,
-                'message' => 'Navigasi berhasil dimuat'
+                'data' => [
+                    'course_title' => $courseDescription->title,
+                    'navigation' => $navigation,
+                    'total_materis' => $navigation->count()
+                ]
             ]);
 
         } catch (Exception $e) {
             Log::error('Error in getNavigation: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan internal server',
+                'message' => 'Course tidak ditemukan',
                 'error' => app()->environment('local') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
@@ -350,63 +434,72 @@ class CourseContentController extends Controller
     public function getPrevNext($slug): JsonResponse
     {
         try {
-            // Extract course info from slug
-            $slugParts = explode('-materi-', $slug);
-            if (count($slugParts) < 2) {
+            // Parse slug to get course content and material info
+            $parts = explode('-materi-', $slug);
+            if (count($parts) !== 2) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Format slug tidak valid'
                 ], 400);
             }
 
-            $courseSlug = $slugParts[0];
-            $materialNumber = (int) $slugParts[1];
+            $courseSlug = $parts[0];
+            $currentOrder = (int) $parts[1];
 
             $courseContent = CourseContent::where('slug', $courseSlug)->first();
 
-            if (!$courseContent || !$courseContent->materials) {
+            if (!$courseContent || !is_array($courseContent->materials)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Konten course tidak ditemukan'
+                    'message' => 'Course tidak ditemukan'
                 ], 404);
             }
 
             $materials = collect($courseContent->materials)->sortBy('urutan')->values();
-            $currentIndex = $materialNumber - 1;
+            $currentIndex = $materials->search(function ($material) use ($currentOrder) {
+                return ($material['urutan'] ?? 0) == $currentOrder;
+            });
 
-            $prevMaterial = null;
-            $nextMaterial = null;
-
-            if ($currentIndex > 0) {
-                $prev = $materials[$currentIndex - 1];
-                $prevMaterial = [
-                    'slug' => $courseSlug . '-materi-' . $prev['urutan'],
-                    'judul' => $prev['judul']
-                ];
+            if ($currentIndex === false) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Materi tidak ditemukan'
+                ], 404);
             }
 
-            if ($currentIndex < $materials->count() - 1) {
-                $next = $materials[$currentIndex + 1];
-                $nextMaterial = [
-                    'slug' => $courseSlug . '-materi-' . $next['urutan'],
-                    'judul' => $next['judul']
-                ];
-            }
+            $current = $materials[$currentIndex];
+            $prev = $currentIndex > 0 ? $materials[$currentIndex - 1] : null;
+            $next = $currentIndex < $materials->count() - 1 ? $materials[$currentIndex + 1] : null;
 
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'prev' => $prevMaterial,
-                    'next' => $nextMaterial
-                ],
-                'message' => 'Navigasi berhasil dimuat'
+                    'current' => [
+                        'id' => $currentIndex + 1,
+                        'slug' => $courseSlug . '-materi-' . ($current['urutan'] ?? ($currentIndex + 1)),
+                        'judul' => $current['judul'] ?? 'Untitled',
+                        'urutan' => $current['urutan'] ?? ($currentIndex + 1)
+                    ],
+                    'prev' => $prev ? [
+                        'id' => $currentIndex,
+                        'slug' => $courseSlug . '-materi-' . ($prev['urutan'] ?? $currentIndex),
+                        'judul' => $prev['judul'] ?? 'Untitled',
+                        'urutan' => $prev['urutan'] ?? $currentIndex
+                    ] : null,
+                    'next' => $next ? [
+                        'id' => $currentIndex + 2,
+                        'slug' => $courseSlug . '-materi-' . ($next['urutan'] ?? ($currentIndex + 2)),
+                        'judul' => $next['judul'] ?? 'Untitled',
+                        'urutan' => $next['urutan'] ?? ($currentIndex + 2)
+                    ] : null
+                ]
             ]);
 
         } catch (Exception $e) {
             Log::error('Error in getPrevNext: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan internal server',
+                'message' => 'Materi tidak ditemukan',
                 'error' => app()->environment('local') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
@@ -415,36 +508,30 @@ class CourseContentController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $contents = CourseContent::with('courseDescription')->get();
-
-            $formattedContents = $contents->map(function ($content) {
-                $materialCount = $content->materials ? count($content->materials) : 0;
-
-                return [
-                    'id' => $content->id,
-                    'course_title' => $content->course_title,
-                    'slug' => $content->slug,
-                    'course_description_id' => $content->course_description_id,
-                    'material_count' => $materialCount,
-                    'course_info' => $content->courseDescription ? [
-                        'title' => $content->courseDescription->title,
-                        'instructor_name' => $content->courseDescription->instructor_name,
-                        'price' => $content->courseDescription->price
-                    ] : null
-                ];
-            });
+            $courseContents = CourseContent::with('courseDescription')->get();
 
             return response()->json([
                 'success' => true,
-                'data' => $formattedContents,
-                'message' => 'Semua konten berhasil dimuat'
+                'data' => $courseContents->map(function($content) {
+                    $materialsCount = is_array($content->materials) ? count($content->materials) : 0;
+
+                    return [
+                        'id' => $content->id,
+                        'slug' => $content->slug,
+                        'course_title' => $content->course_title,
+                        'materials_count' => $materialsCount,
+                        'course_description_id' => $content->course_description_id,
+                        'course_description_title' => $content->courseDescription->title ?? 'Unknown Course'
+                    ];
+                }),
+                'total' => $courseContents->count()
             ]);
 
         } catch (Exception $e) {
             Log::error('Error in index: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan internal server',
+                'message' => 'Gagal memuat data',
                 'error' => app()->environment('local') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
