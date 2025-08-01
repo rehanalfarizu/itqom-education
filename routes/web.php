@@ -29,10 +29,10 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 // Comment out admin routes yang konflik dengan Filament
-// Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
-//     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-//     Route::resource('users', UserProfileController::class);
-// });
+Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
+Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+Route::resource('users', UserProfileController::class);
+});
 
 Route::get('/login', function () {
     return response()->json([

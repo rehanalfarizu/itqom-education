@@ -23,7 +23,7 @@ class CourseDescriptionResource extends Resource
 
     protected static ?string $modelLabel = 'Course Description';
 
-    protected static ?string $pluralModelLabel = 'Course Descriptions';
+    protected static ?string $pluralModelLabel = 'Course Description';
 
     public static function form(Form $form): Form
     {
