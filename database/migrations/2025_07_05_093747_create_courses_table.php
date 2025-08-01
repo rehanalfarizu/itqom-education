@@ -15,8 +15,8 @@ return new class extends Migration
             $table->text('overview');
             $table->string('image_url')->nullable();
             $table->string('thumbnail')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->decimal('price_discount', 10, 2)->nullable();
+            $table->decimal('price', 15, 2);
+            $table->decimal('price_discount', 15, 2)->nullable();
             $table->string('instructor_name')->nullable();
             $table->string('instructor_position')->nullable();
             $table->string('instructor_image_url')->nullable();
