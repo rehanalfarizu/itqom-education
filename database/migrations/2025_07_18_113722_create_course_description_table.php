@@ -15,7 +15,7 @@ return new class extends Migration
 
             $table->string('title')->nullable();
             $table->string('instructor')->nullable();
-            $table->string('video_count')->unique()->nullable();
+            $table->integer('video_count')->nullable();
             $table->string('duration')->nullable();
             $table->decimal('original_price', 10, 2)->nullable(); // Ubah ke decimal
             $table->decimal('price', 10, 2)->nullable(); // Ubah ke decimal
