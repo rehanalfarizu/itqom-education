@@ -4,109 +4,101 @@ namespace App\Filament\Widgets;
 
 use Filament\Widgets\Widget;
 use App\Models\Course;
+use App\Models\UserCourse;
+use App\Models\CourseDescription;
 use Illuminate\Support\Facades\Cache;
 
 class CourseOverviewWidget extends Widget
 {
     protected static string $view = 'filament.widgets.course-overview';
-
+    
     protected int | string | array $columnSpan = 'full';
-
+    
     protected static ?int $sort = 1;
-
+    
     public bool $isLoading = true;
-
+    
     public function mount(): void
     {
         // Simulate loading delay for demonstration
         $this->isLoading = true;
     }
-
+    
     public function getViewData(): array
     {
         // Use cache to improve performance
         $data = Cache::remember('course_overview_data', 300, function () {
+            // Get basic statistics
+            $totalCourses = Course::count();
+            $totalEnrollments = UserCourse::count();
+            $completedCourses = UserCourse::where('is_completed', true)->count();
+            $activeEnrollments = UserCourse::where('is_completed', false)->count();
+            
+            // Get recent enrollments with course details
+            $recentEnrollments = UserCourse::with(['user', 'course'])
+                ->latest('enrolled_at')
+                ->take(6)
+                ->get()
+                ->map(function ($enrollment) {
+                    return [
+                        'id' => $enrollment->id,
+                        'user_name' => $enrollment->user->name ?? 'Unknown User',
+                        'user_email' => $enrollment->user->email ?? '',
+                        'course_title' => $enrollment->course->title ?? 'Unknown Course',
+                        'course_description' => $enrollment->course->description ?? 'No description',
+                        'progress_percentage' => $enrollment->progress_percentage ?? 0,
+                        'enrolled_at' => $enrollment->enrolled_at,
+                        'last_accessed_at' => $enrollment->last_accessed_at,
+                        'is_completed' => $enrollment->is_completed,
+                        'completed_at' => $enrollment->completed_at,
+                    ];
+                });
+            
+            // Get popular courses (most enrolled)
+            $popularCourses = UserCourse::selectRaw('course_id, COUNT(*) as enrollment_count')
+                ->with('course')
+                ->groupBy('course_id')
+                ->orderBy('enrollment_count', 'desc')
+                ->take(4)
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'course_title' => $item->course->title ?? 'Unknown Course',
+                        'course_description' => $item->course->description ?? 'No description',
+                        'enrollment_count' => $item->enrollment_count,
+                        'course_id' => $item->course_id,
+                    ];
+                });
+                
+            // Calculate monthly statistics
+            $thisMonth = UserCourse::whereMonth('enrolled_at', now()->month)
+                ->whereYear('enrolled_at', now()->year)
+                ->count();
+            $lastMonth = UserCourse::whereMonth('enrolled_at', now()->subMonth()->month)
+                ->whereYear('enrolled_at', now()->subMonth()->year)
+                ->count();
+            
+            $growthRate = $lastMonth > 0 ? round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1) : 100;
+            
             return [
-                'totalCourses' => Course::count(),
-                'activeCourses' => Course::whereNotNull('title')->count(), // Courses yang memiliki title sebagai active
-                'totalStudents' => Course::withCount('userCourses')->get()->sum('user_courses_count'),
-                'recentCourses' => Course::with(['courseDescriptions', 'userCourses'])
-                    ->latest()
-                    ->take(6)
-                    ->get()
-                    ->map(function ($course) {
-                        return [
-                            'id' => $course->id,
-                            'title' => $course->title,
-                            'description' => $course->courseDescriptions->first()?->description ?? 'No description',
-                            'thumbnail' => $course->image, // Gunakan field image yang ada
-                            'students_count' => $course->userCourses->count(),
-                            'duration' => $this->calculateCourseDuration($course),
-                            'level' => $course->category ?? 'General', // Gunakan category sebagai level
-                            'price' => $course->price,
-                            'rating' => $this->calculateCourseRating($course),
-                            'created_at' => $course->created_at,
-                            'updated_at' => $course->updated_at,
-                        ];
-                    }),
-                'popularCourses' => Course::withCount('userCourses')
-                    ->orderBy('user_courses_count', 'desc')
-                    ->take(4)
-                    ->get(),
-                'courseStats' => [
-                    'this_month' => Course::whereMonth('created_at', now()->month)->count(),
-                    'last_month' => Course::whereMonth('created_at', now()->subMonth()->month)->count(),
-                    'growth_rate' => $this->calculateGrowthRate(),
+                'totalCourses' => $totalCourses,
+                'totalEnrollments' => $totalEnrollments,
+                'completedCourses' => $completedCourses,
+                'activeEnrollments' => $activeEnrollments,
+                'recentEnrollments' => $recentEnrollments,
+                'popularCourses' => $popularCourses,
+                'enrollmentStats' => [
+                    'this_month' => $thisMonth,
+                    'last_month' => $lastMonth,
+                    'growth_rate' => $growthRate,
+                    'completion_rate' => $totalEnrollments > 0 ? round(($completedCourses / $totalEnrollments) * 100, 1) : 0,
                 ]
             ];
         });
-
+        
         return $data;
     }
-
-    private function calculateCourseDuration(Course $course): string
-    {
-        // Gunakan field duration yang sudah ada di tabel courses
-        if ($course->duration) {
-            return $course->duration;
-        }
-
-        // Fallback: hitung berdasarkan jumlah materials jika ada
-        $totalContents = $course->courseContents->count() ?? 0;
-
-        if ($totalContents == 0) {
-            return '0 min';
-        }
-
-        // Estimasi 5 menit per content
-        $estimatedMinutes = $totalContents * 5;
-
-        if ($estimatedMinutes < 60) {
-            return $estimatedMinutes . ' min';
-        }
-
-        $hours = floor($estimatedMinutes / 60);
-        $minutes = $estimatedMinutes % 60;
-
-        return $hours . 'h ' . ($minutes > 0 ? $minutes . 'm' : '');
-    }
-
-    private function calculateCourseRating(Course $course): float
-    {
-        // Simulate rating calculation - implement your actual rating logic
-        return round(rand(35, 50) / 10, 1);
-    }
-
-    private function calculateGrowthRate(): float
-    {
-        $thisMonth = Course::whereMonth('created_at', now()->month)->count();
-        $lastMonth = Course::whereMonth('created_at', now()->subMonth()->month)->count();
-
-        if ($lastMonth == 0) return 100;
-
-        return round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1);
-    }
-
+    
     public function loadData()
     {
         $this->isLoading = false;
