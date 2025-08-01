@@ -984,4 +984,47 @@ public function paymentError(Request $request)
         return redirect('/courses?error=payment_callback_error');
     }
 }
+
+    /**
+     * Debug method untuk update payment status
+     */
+    public function debugUpdateStatus($orderId, $status)
+    {
+        try {
+            $payment = Payment::where('order_id', $orderId)->first();
+            
+            if (!$payment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment not found',
+                    'order_id' => $orderId
+                ]);
+            }
+            
+            $oldStatus = $payment->status;
+            $payment->status = $status;
+            $payment->save();
+            
+            // Jika status berubah menjadi success, grant course access
+            if ($status === 'success' && $oldStatus !== 'success') {
+                $this->grantCourseAccess($payment, $payment->course_id);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment status updated successfully',
+                'order_id' => $orderId,
+                'old_status' => $oldStatus,
+                'new_status' => $status,
+                'payment' => $payment
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating payment status',
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
 }

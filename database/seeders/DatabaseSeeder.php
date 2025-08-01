@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-                User::create([
+        User::create([
             'name' => 'Admin',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('admin123'),
@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
-            CourseDescriptionSeeder::class,  
+            CourseDescriptionSeeder::class,
             CourseSeeder::class,
 
         ]);

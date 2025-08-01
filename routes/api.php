@@ -41,6 +41,9 @@ Route::get('/payment/finish', [PaymentController::class, 'paymentFinish']);
 Route::get('/payment/unfinish', [PaymentController::class, 'paymentUnfinish']);
 Route::get('/payment/error', [PaymentController::class, 'paymentError']);
 
+// Debug route untuk update payment status
+Route::get('/payment/debug-update/{order_id}/{status}', [PaymentController::class, 'debugUpdateStatus']);
+
 // Protected Routes (require authentication)
 Route::middleware('auth:sanctum')->group(function () {
     // User info
