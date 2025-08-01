@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CourseDescriptionResource\Pages;
-use App\Models\CourseDescriptions;
+use App\Models\CourseDescription;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -12,7 +12,7 @@ use Filament\Tables\Table;
 
 class CourseDescriptionsResource extends Resource
 {
-    protected static ?string $model = CourseDescriptions::class;
+    protected static ?string $model = CourseDescription::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Descriptions';
@@ -237,10 +237,9 @@ class CourseDescriptionsResource extends Resource
 public static function getPages(): array
 {
     return [
-        'index' => Pages\ListCourseDescription::route('/'),
-        'create' => Pages\CreateCourseDescription::route('/create'),
-        'edit' => Pages\EditCourseDescription::route('/{record}/edit'),
+        'index' => Pages\ListCourseDescriptions::route('/'),
+        'create' => Pages\CreateCourseDescriptions::route('/create'),
+        'edit' => Pages\EditCourseDescriptions::route('/{record}/edit'),
     ];
-
-    }
+}
 }

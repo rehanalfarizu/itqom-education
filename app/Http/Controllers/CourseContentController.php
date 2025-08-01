@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CourseContent;
-use App\Models\CourseDescriptions;
+use App\Models\CourseDescription;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -34,11 +34,11 @@ class CourseContentController extends Controller
             $courseDescriptionId = (int) $courseDescriptionId;
 
             // Find course description with more details
-            $courseDescription = CourseDescriptions::find($courseDescriptionId);
+            $courseDescription = CourseDescription::find($courseDescriptionId);
 
             if (!$courseDescription) {
                 // Log available courses for debugging
-                $availableIds = CourseDescriptions::select('id', 'title')->get();
+                $availableIds = CourseDescription::select('id', 'title')->get();
                 Log::warning('Course description not found', [
                     'requested_id' => $courseDescriptionId,
                     'available_courses' => $availableIds->toArray()
@@ -80,7 +80,7 @@ class CourseContentController extends Controller
                             'judul' => $material['judul'] ?? 'Materi ' . ($index + 1),
                             'konten' => $material['konten'] ?? '<p>Konten akan segera tersedia.</p>',
                             'urutan' => $material['urutan'] ?? ($index + 1),
-                            'course_title' => $courseContent->course_title ?: $courseDescription->title,
+                            'course_title' => '<span style="color:red">' . ($courseContent->course_title ?: ($courseDescription->title ?? '')) . '</span>',
                             'course_description_id' => $courseContent->course_description_id
                         ];
                     })
@@ -242,7 +242,7 @@ class CourseContentController extends Controller
             $courseDescriptionId = (int) $courseDescriptionId;
 
             // Get course description for total materials
-            $courseDescription = CourseDescriptions::find($courseDescriptionId);
+            $courseDescription = CourseDescription::find($courseDescriptionId);
 
             if (!$courseDescription) {
                 return response()->json([
@@ -364,7 +364,7 @@ class CourseContentController extends Controller
     {
         try {
             $courseDescriptionId = (int) $courseDescriptionId;
-            $courseDescription = CourseDescriptions::find($courseDescriptionId);
+            $courseDescription = CourseDescription::find($courseDescriptionId);
 
             if (!$courseDescription) {
                 return response()->json([
