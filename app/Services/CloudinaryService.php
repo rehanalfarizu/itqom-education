@@ -10,7 +10,7 @@ class CloudinaryService
     public function uploadImage(UploadedFile $file, string $folder = null): string
     {
         $folder = $folder ?? config('cloudinary.folder', 'itqom-platform');
-        
+
         $result = Cloudinary::upload($file->getRealPath(), [
             'folder' => $folder,
             'resource_type' => 'image',
@@ -26,7 +26,7 @@ class CloudinaryService
     public function uploadImageWithPublicId(UploadedFile $file, string $publicId, string $folder = null): string
     {
         $folder = $folder ?? config('cloudinary.folder', 'itqom-platform');
-        
+
         $result = Cloudinary::upload($file->getRealPath(), [
             'folder' => $folder,
             'public_id' => $publicId,

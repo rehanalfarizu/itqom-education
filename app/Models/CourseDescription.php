@@ -55,11 +55,8 @@ class CourseDescription extends Model
             return $value;
         }
 
-        // Jika hanya path/filename, buat URL Cloudinary
-        if ($value) {
-            return Cloudinary::getUrl($value);
-        }
-
+        // Jika hanya path/filename, kembalikan sebagai path biasa untuk sementara
+        // Akan dioptimalkan nanti setelah Cloudinary konfigurasi fix
         return $value;
     }
 
@@ -75,11 +72,7 @@ class CourseDescription extends Model
             return $value;
         }
 
-        // Jika hanya path/filename, buat URL Cloudinary
-        if ($value) {
-            return Cloudinary::getUrl($value);
-        }
-
+        // Jika hanya path/filename, kembalikan sebagai path biasa untuk sementara
         return $value;
     }
 
@@ -95,11 +88,7 @@ class CourseDescription extends Model
             return $value;
         }
 
-        // Jika hanya path/filename, buat URL Cloudinary
-        if ($value) {
-            return Cloudinary::getUrl($value);
-        }
-
+        // Jika hanya path/filename, kembalikan sebagai path biasa untuk sementara
         return $value;
     }
 
