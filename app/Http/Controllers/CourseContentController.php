@@ -23,11 +23,21 @@ class CourseContentController extends Controller
                 'type' => gettype($courseDescriptionId)
             ]);
 
+            // Check if any course descriptions exist at all
+            $totalCourses = CourseDescription::count();
+            $allCourses = CourseDescription::select('id', 'title')->get();
+            
+            Log::info('Database check - Total courses: ' . $totalCourses, [
+                'all_courses' => $allCourses->toArray()
+            ]);
+
             // Validate ID
             if (!is_numeric($courseDescriptionId)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'ID course tidak valid'
+                ], 400);
+            }
                 ], 400);
             }
 
