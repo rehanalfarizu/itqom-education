@@ -4,18 +4,61 @@ namespace App\Http\Controllers;
 
 use App\Models\CourseContent;
 use App\Models\CourseDescription;
+use App\Models\UserProfile;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Exception;
 
 class CourseContentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum')->only(['getByCourseDescription', 'getBySlug']);
+    }
+
+    /**
+     * Check if user has access to course content
+     */
+    private function hasAccessToCourse($userId, $courseId): bool
+    {
+        try {
+            // Get user profile
+            $userProfile = UserProfile::where('user_id', $userId)->first();
+            if (!$userProfile) {
+                Log::warning('User profile not found for access check', ['user_id' => $userId]);
+                return false;
+            }
+
+            // Check if user has successful payment for this course
+            $hasSuccessfulPayment = Payment::where('user_profile_id', $userProfile->id)
+                ->where('course_id', $courseId)
+                ->where('status', 'success')
+                ->exists();
+
+            // Check if user is enrolled in user_courses table
+            $isEnrolled = DB::table('user_courses')
+                ->where('user_id', $userId)
+                ->where('course_id', $courseId)
+                ->exists();
+
+            return $hasSuccessfulPayment || $isEnrolled;
+        } catch (Exception $e) {
+            Log::error('Error checking course access', [
+                'user_id' => $userId,
+                'course_id' => $courseId,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
     /**
      * Get course content by course description ID
      * Enhanced with better progress tracking and material count from CourseDescriptions
      */
-    public function getByCourseDescription($courseDescriptionId): JsonResponse
+    public function getByCourseDescription(Request $request, $courseDescriptionId): JsonResponse
     {
         try {
             Log::info('Searching for course description with ID: ' . $courseDescriptionId, [
@@ -32,6 +75,21 @@ class CourseContentController extends Controller
             }
 
             $courseDescriptionId = (int) $courseDescriptionId;
+
+            // Check if user has access to this course
+            $user = $request->user();
+            if ($user && !$this->hasAccessToCourse($user->id, $courseDescriptionId)) {
+                Log::warning('User attempted to access course without permission', [
+                    'user_id' => $user->id,
+                    'course_id' => $courseDescriptionId
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda belum membeli course ini. Silakan lakukan pembelian terlebih dahulu.',
+                    'code' => 'COURSE_NOT_PURCHASED'
+                ], 403);
+            }
 
             // Find course description with more details
             $courseDescription = CourseDescription::find($courseDescriptionId);
@@ -287,7 +345,7 @@ class CourseContentController extends Controller
     }
 
     // Keep existing methods unchanged
-    public function getBySlug($slug): JsonResponse
+    public function getBySlug(Request $request, $slug): JsonResponse
     {
         try {
             if (empty($slug)) {
@@ -317,6 +375,22 @@ class CourseContentController extends Controller
                     'success' => false,
                     'message' => 'Course dengan slug "' . $courseSlug . '" tidak ditemukan'
                 ], 404);
+            }
+
+            // Check if user has access to this course
+            $user = $request->user();
+            if ($user && !$this->hasAccessToCourse($user->id, $courseContent->course_description_id)) {
+                Log::warning('User attempted to access course material without permission', [
+                    'user_id' => $user->id,
+                    'course_id' => $courseContent->course_description_id,
+                    'slug' => $courseSlug
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda belum membeli course ini. Silakan lakukan pembelian terlebih dahulu.',
+                    'code' => 'COURSE_NOT_PURCHASED'
+                ], 403);
             }
 
             if (!is_array($courseContent->materials)) {
@@ -360,7 +434,7 @@ class CourseContentController extends Controller
         }
     }
 
-    public function getNavigation($courseDescriptionId): JsonResponse
+    public function getNavigation(Request $request, $courseDescriptionId): JsonResponse
     {
         try {
             $courseDescriptionId = (int) $courseDescriptionId;
