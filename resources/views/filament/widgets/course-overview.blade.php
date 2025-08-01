@@ -238,18 +238,6 @@
                                 </table>
                             </div>
                         </div>
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 text-sm text-gray-500">
-                                                {{ $enrollment['enrolled_at']?->format('M d, Y') ?? 'N/A' }}
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
 
                         {{-- Popular Courses --}}
                         <div class="bg-slate-50/50 rounded-xl border border-slate-200 overflow-hidden shadow-sm">
