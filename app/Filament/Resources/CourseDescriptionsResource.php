@@ -232,7 +232,7 @@ class CourseDescriptionsResource extends Resource
         ];
     }
 
-    
+
         // Ubah bagian getPages() menjadi:
 public static function getPages(): array
 {
