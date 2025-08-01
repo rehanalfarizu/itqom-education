@@ -3,13 +3,13 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\CourseDescriptions;
+use App\Models\CourseDescription;
 
 class CourseDescriptionSeeder extends Seeder
 {
     public function run()
     {
-        $cd = CourseDescriptions::create([
+        $cd = CourseDescription::create([
             'title' => 'Complete Web Development Bootcamp 2025',
             'tag' => 'Development',
             'overview' => 'Learn to code and become a full-stack web developer with HTML, CSS, JavaScript, Node.js, Express, MongoDB, and more!',

@@ -12,27 +12,23 @@ class CourseController extends Controller
 {
     public function index()
     {
-        // Ambil semua course dengan relasi courseDescription
-        $courses = Course::with('courseDescription')->get();
+        // Ambil semua course descriptions
+        $courseDescriptions = CourseDescription::all();
 
         // Transform data untuk sesuai dengan format yang diharapkan frontend
-        $transformedCourses = $courses->map(function($course) {
-            if (!$course->courseDescription) {
-                return null;
-            }
-
+        $transformedCourses = $courseDescriptions->map(function($courseDesc) {
             return [
-                'id' => $course->id,
-                'title' => $course->courseDescription->title,
-                'instructor' => $course->courseDescription->instructor_name,
-                'video_count' => $course->courseDescription->video_count,
-                'duration' => $course->courseDescription->duration . ' hours',
-                'original' => number_format($course->courseDescription->price, 0, ',', '.'),
-                'price' => number_format($course->courseDescription->price_discount ?? $course->courseDescription->price, 0, ',', '.'),
-                'image' => $course->courseDescription->image_url ? '/storage/' . $course->courseDescription->image_url : '/images/default.jpg',
-                'category' => $course->courseDescription->tag ?? 'Umum'
+                'id' => $courseDesc->id,
+                'title' => $courseDesc->title,
+                'instructor' => $courseDesc->instructor_name,
+                'video_count' => $courseDesc->video_count . ' video',
+                'duration' => $courseDesc->duration . ' hours',
+                'original' => number_format($courseDesc->price, 0, ',', '.'),
+                'price' => number_format($courseDesc->price_discount ?? $courseDesc->price, 0, ',', '.'),
+                'image' => $courseDesc->image_url ? '/storage/' . $courseDesc->image_url : '/images/default.jpg',
+                'category' => $courseDesc->tag ?? 'Umum'
             ];
-        })->filter(); // Hapus null values
+        });
 
         return response()->json($transformedCourses->values());
     }

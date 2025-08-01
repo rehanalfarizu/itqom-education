@@ -18,11 +18,11 @@ class CourseDescriptionResource extends Resource
     protected static ?string $model = CourseDescription::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
-    
+
     protected static ?string $navigationLabel = 'Course Descriptions';
-    
+
     protected static ?string $modelLabel = 'Course Description';
-    
+
     protected static ?string $pluralModelLabel = 'Course Descriptions';
 
     public static function form(Form $form): Form

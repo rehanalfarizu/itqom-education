@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CourseContentResource\Pages;
 use App\Models\CourseContent;
-use App\Models\CourseDescriptions;
+use App\Models\CourseDescription;
 
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -33,13 +33,13 @@ class CourseContentResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('course_description_id')
                             ->label('Course Description')
-                            ->options(CourseDescriptions::pluck('title', 'id'))
+                            ->options(CourseDescription::pluck('title', 'id'))
                             ->searchable()
                             ->required()
                             ->reactive()
                             ->afterStateUpdated(function ($state, Forms\Set $set) {
                                 if ($state) {
-                                    $course = CourseDescriptions::find($state);
+                                    $course = CourseDescription::find($state);
                                     if ($course) {
                                         $set('course_title', $course->title);
                                         // Auto generate slug from course title
@@ -168,7 +168,7 @@ class CourseContentResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('course_description_id')
                     ->label('Course')
-                    ->options(CourseDescriptions::pluck('title', 'id'))
+                    ->options(CourseDescription::pluck('title', 'id'))
                     ->searchable(),
             ])
             ->actions([
