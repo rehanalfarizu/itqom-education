@@ -85,7 +85,7 @@ class CourseContentController extends Controller
                     if (is_string($materials)) {
                         $materials = json_decode($materials, true);
                     }
-                    
+
                     if (is_array($materials)) {
                         // Extract materials from JSON and format them
                         $materis = collect($materials)

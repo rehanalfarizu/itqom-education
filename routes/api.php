@@ -93,7 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/prev-next/{slug}', [CourseContentController::class, 'getPrevNext']);
         Route::get('/search', [CourseContentController::class, 'search']);
         Route::get('/all', [CourseContentController::class, 'index']);
-        
+
         Route::post('/progress/{courseId}', function (Request $request, $courseId) {
             $user = $request->user();
             $progress = $request->input('progress', []);
