@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Midtrans\Snap;
 use Midtrans\Config;
 use Midtrans\Notification;
@@ -736,15 +737,13 @@ public function checkPaymentStatus(Request $request, $orderId)
             return response()->json(['success' => false, 'error' => 'User not authenticated'], 401);
         }
 
-
-            // FIXED: Validate course_id dengan tabel yang benar
+        // FIXED: Simplified validation - only validate course_id since user is from auth
         $request->validate([
-            'course_id' => 'required|exists:course_description,id', // Make sure this is consistent
-            'user_profile_id' => 'required|exists:users_profile,id'
+            'course_id' => 'required|exists:course_description,id'
         ]);
 
-            $courseId = $request->course_id;
-            $userProfileId = $user->id;
+        $courseId = $request->course_id;
+        $userProfileId = $user->id;
 
             Log::info('Checking course purchase', [
                 'user_id' => $userProfileId,
@@ -758,16 +757,24 @@ public function checkPaymentStatus(Request $request, $orderId)
                 ->where('status', 'success')
                 ->first();
 
-            // Also check in user_courses table (if exists)
-            $hasAccess = DB::table('user_courses')
-                ->where('user_id', $userProfileId)
-                ->where('course_id', $courseId)
-                ->exists();
+            // Check if user_courses table exists, if not assume no additional access
+            $hasAccess = false;
+            try {
+                if (Schema::hasTable('user_courses')) {
+                    $hasAccess = DB::table('user_courses')
+                        ->where('user_id', $userProfileId)
+                        ->where('course_id', $courseId)
+                        ->exists();
+                }
+            } catch (Exception $e) {
+                Log::warning('user_courses table check failed', ['error' => $e->getMessage()]);
+                $hasAccess = false;
+            }
 
             return response()->json([
                 'success' => true,
                 'has_purchased' => !!$existingPayment,
-                'has_access' => $hasAccess,
+                'has_access' => $hasAccess || !!$existingPayment, // If purchased, they have access
                 'payment_details' => $existingPayment ? [
                     'order_id' => $existingPayment->order_id,
                     'purchased_at' => $existingPayment->updated_at,
