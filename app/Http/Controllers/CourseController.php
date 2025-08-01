@@ -25,7 +25,7 @@ class CourseController extends Controller
                 'duration' => $courseDesc->duration . ' hours',
                 'original' => number_format($courseDesc->price, 0, ',', '.'),
                 'price' => number_format($courseDesc->price_discount ?? $courseDesc->price, 0, ',', '.'),
-                'image' => $courseDesc->image_url ? '/storage/' . $courseDesc->image_url : '/images/default.jpg',
+                'image' => $courseDesc->image_url ?: '/images/default.jpg',
                 'category' => $courseDesc->tag ?? 'Umum'
             ];
         });
