@@ -13,13 +13,13 @@
             <div class="h-12 w-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg shimmer"></div>
             <div class="h-6 w-6 bg-gray-200 rounded shimmer"></div>
         </div>
-        
+
         {{-- Value --}}
         <div class="space-y-2">
             <div class="h-8 bg-gray-200 rounded w-20 shimmer"></div>
             <div class="h-4 bg-gray-200 rounded w-24 shimmer"></div>
         </div>
-        
+
         {{-- Trend --}}
         <div class="flex items-center space-x-2">
             <div class="h-4 w-4 bg-green-200 rounded shimmer"></div>
@@ -43,7 +43,7 @@
             <div class="h-8 bg-gray-200 rounded-lg w-20 shimmer"></div>
         </div>
     </div>
-    
+
     {{-- Chart Area --}}
     <div class="relative h-80 bg-gray-50 rounded-lg overflow-hidden">
         {{-- Y-axis labels --}}
@@ -52,14 +52,14 @@
             <div class="h-3 bg-gray-200 rounded w-8 shimmer"></div>
             @endfor
         </div>
-        
+
         {{-- Chart bars/lines --}}
         <div class="ml-12 mr-4 h-full flex items-end justify-between">
             @for($i = 0; $i < 12; $i++)
             <div class="bg-blue-200 rounded-t w-8 shimmer" style="height: {{ rand(20, 80) }}%"></div>
             @endfor
         </div>
-        
+
         {{-- X-axis labels --}}
         <div class="absolute bottom-0 left-12 right-4 flex justify-between py-2">
             @for($i = 0; $i < 6; $i++)
@@ -67,7 +67,7 @@
             @endfor
         </div>
     </div>
-    
+
     {{-- Legend --}}
     <div class="flex items-center justify-center space-x-6 mt-4">
         @for($i = 0; $i < 3; $i++)
@@ -92,7 +92,7 @@
             <div class="h-9 bg-blue-200 rounded-lg w-24 shimmer"></div>
         </div>
     </div>
-    
+
     {{-- Table Content --}}
     <div class="overflow-hidden">
         @for($row = 0; $row < 5; $row++)
@@ -105,10 +105,10 @@
                     <div class="h-3 bg-gray-200 rounded w-16 shimmer"></div>
                 </div>
             </div>
-            
+
             {{-- Status --}}
             <div class="h-6 bg-green-200 rounded-full w-16 shimmer"></div>
-            
+
             {{-- Value --}}
             <div class="text-right space-y-1">
                 <div class="h-4 bg-gray-200 rounded w-16 shimmer"></div>
@@ -117,7 +117,7 @@
         </div>
         @endfor
     </div>
-    
+
     {{-- Table Footer --}}
     <div class="border-t border-gray-200 p-4 text-center">
         <div class="h-4 bg-gray-200 rounded w-32 mx-auto shimmer"></div>
@@ -138,7 +138,7 @@
             <div class="h-24 w-24 bg-blue-200 rounded-full shimmer"></div>
         </div>
     </div>
-    
+
     {{-- Quick Actions --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         @for($i = 0; $i < 4; $i++)
@@ -148,12 +148,12 @@
         </div>
         @endfor
     </div>
-    
+
     {{-- Recent Activity --}}
     <div class="bg-white rounded-xl border border-gray-200 p-6">
         <div class="space-y-4">
             <div class="h-6 bg-gray-200 rounded w-32 shimmer"></div>
-            
+
             @for($i = 0; $i < 4; $i++)
             <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
                 <div class="h-8 w-8 bg-gray-200 rounded-full shimmer"></div>

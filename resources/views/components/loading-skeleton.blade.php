@@ -76,7 +76,7 @@
             <div class="grid grid-cols-6 gap-4 p-4 items-center animate-pulse hover:bg-gray-50/50">
                 {{-- Checkbox --}}
                 <div class="h-4 w-4 bg-gray-200 rounded"></div>
-                
+
                 {{-- Title with Image --}}
                 <div class="flex items-center space-x-3">
                     <div class="h-12 w-12 bg-gray-200 rounded-lg flex-shrink-0"></div>
@@ -85,23 +85,23 @@
                         <div class="h-3 bg-gray-200 rounded w-24"></div>
                     </div>
                 </div>
-                
+
                 {{-- Category --}}
                 <div class="space-y-1">
                     <div class="h-6 bg-gray-200 rounded-full w-16"></div>
                 </div>
-                
+
                 {{-- Status --}}
                 <div class="space-y-1">
                     <div class="h-6 bg-gray-200 rounded-full w-20"></div>
                 </div>
-                
+
                 {{-- Date --}}
                 <div class="space-y-1">
                     <div class="h-4 bg-gray-200 rounded w-24"></div>
                     <div class="h-3 bg-gray-200 rounded w-16"></div>
                 </div>
-                
+
                 {{-- Actions --}}
                 <div class="flex items-center space-x-2">
                     <div class="h-8 w-8 bg-gray-200 rounded"></div>

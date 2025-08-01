@@ -16,7 +16,7 @@
                 <div class="h-6 bg-gray-200 rounded w-32 shimmer"></div>
                 <div class="h-9 bg-gray-200 rounded-lg w-64 shimmer"></div>
             </div>
-            
+
             {{-- Actions --}}
             <div class="flex items-center space-x-3">
                 <div class="h-9 bg-gray-200 rounded-lg w-20 shimmer"></div>
@@ -24,7 +24,7 @@
                 <div class="h-9 bg-blue-200 rounded-lg w-28 shimmer"></div>
             </div>
         </div>
-        
+
         {{-- Filters --}}
         <div class="px-6 pb-4 flex items-center space-x-4">
             <div class="h-8 bg-gray-200 rounded-lg w-24 shimmer"></div>
@@ -45,14 +45,14 @@
                     <th class="w-12 px-6 py-3">
                         <div class="h-4 w-4 bg-gray-200 rounded shimmer"></div>
                     </th>
-                    
+
                     {{-- Data Columns --}}
                     @for($i = 0; $i < $columns; $i++)
                     <th class="px-6 py-3 text-left">
                         <div class="h-4 bg-gray-200 rounded w-{{ rand(16, 32) }} shimmer"></div>
                     </th>
                     @endfor
-                    
+
                     {{-- Actions Column --}}
                     @if($showActions)
                     <th class="w-24 px-6 py-3">
@@ -61,7 +61,7 @@
                     @endif
                 </tr>
             </thead>
-            
+
             {{-- Table Rows --}}
             <tbody class="divide-y divide-gray-200">
                 @for($row = 0; $row < $rows; $row++)
@@ -70,7 +70,7 @@
                     <td class="px-6 py-4">
                         <div class="h-4 w-4 bg-gray-200 rounded shimmer"></div>
                     </td>
-                    
+
                     {{-- Data Cells --}}
                     @for($col = 0; $col < $columns; $col++)
                     <td class="px-6 py-4">
@@ -100,7 +100,7 @@
                         @endif
                     </td>
                     @endfor
-                    
+
                     {{-- Actions --}}
                     @if($showActions)
                     <td class="px-6 py-4">
@@ -126,7 +126,7 @@
                 <div class="h-4 bg-gray-200 rounded w-32 shimmer"></div>
                 <div class="h-6 bg-gray-200 rounded w-16 shimmer"></div>
             </div>
-            
+
             {{-- Pagination Controls --}}
             <div class="flex items-center space-x-2">
                 <div class="h-8 w-8 bg-gray-200 rounded shimmer"></div>

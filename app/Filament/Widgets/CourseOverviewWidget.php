@@ -9,19 +9,19 @@ use Illuminate\Support\Facades\Cache;
 class CourseOverviewWidget extends Widget
 {
     protected static string $view = 'filament.widgets.course-overview';
-    
+
     protected int | string | array $columnSpan = 'full';
-    
+
     protected static ?int $sort = 1;
-    
+
     public bool $isLoading = true;
-    
+
     public function mount(): void
     {
         // Simulate loading delay for demonstration
         $this->isLoading = true;
     }
-    
+
     public function getViewData(): array
     {
         // Use cache to improve performance
@@ -60,41 +60,41 @@ class CourseOverviewWidget extends Widget
                 ]
             ];
         });
-        
+
         return $data;
     }
-    
+
     private function calculateCourseDuration(Course $course): string
     {
         // Calculate total course duration from course contents
         $totalMinutes = $course->courseContents->sum('duration_minutes') ?? 0;
-        
+
         if ($totalMinutes < 60) {
             return $totalMinutes . ' min';
         }
-        
+
         $hours = floor($totalMinutes / 60);
         $minutes = $totalMinutes % 60;
-        
+
         return $hours . 'h ' . ($minutes > 0 ? $minutes . 'm' : '');
     }
-    
+
     private function calculateCourseRating(Course $course): float
     {
         // Simulate rating calculation - implement your actual rating logic
         return round(rand(35, 50) / 10, 1);
     }
-    
+
     private function calculateGrowthRate(): float
     {
         $thisMonth = Course::whereMonth('created_at', now()->month)->count();
         $lastMonth = Course::whereMonth('created_at', now()->subMonth()->month)->count();
-        
+
         if ($lastMonth == 0) return 100;
-        
+
         return round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1);
     }
-    
+
     public function loadData()
     {
         $this->isLoading = false;
