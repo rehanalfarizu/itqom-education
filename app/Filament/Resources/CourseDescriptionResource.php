@@ -39,39 +39,17 @@ class CourseDescriptionResource extends Resource
                 Forms\Components\Textarea::make('overview')
                     ->required()
                     ->columnSpanFull(),
-                Forms\Components\FileUpload::make('image_url')
-                    ->label('Course Image')
-                    ->image()
-                    ->disk('cloudinary')
-                    ->directory('courses')
-                    ->imageEditor()
-                    ->imageEditorAspectRatios([
-                        '16:9',
-                        '4:3',
-                        '1:1',
-                    ])
-                    ->maxSize(5120) // 5MB
-                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                    ->previewable(true)
-                    ->downloadable(false)
-                    ->openable(false)
+                Forms\Components\TextInput::make('image_url')
+                    ->label('Course Image URL')
+                    ->url()
+                    ->maxLength(255)
+                    ->placeholder('https://example.com/image.jpg')
                     ->columnSpanFull(),
-                Forms\Components\FileUpload::make('thumbnail')
-                    ->label('Thumbnail Image')
-                    ->image()
-                    ->disk('cloudinary')
-                    ->directory('courses/thumbnails')
-                    ->imageEditor()
-                    ->imageEditorAspectRatios([
-                        '16:9',
-                        '4:3',
-                        '1:1',
-                    ])
-                    ->maxSize(2048) // 2MB
-                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                    ->previewable(true)
-                    ->downloadable(false)
-                    ->openable(false),
+                Forms\Components\TextInput::make('thumbnail')
+                    ->label('Thumbnail URL')
+                    ->url()
+                    ->maxLength(255)
+                    ->placeholder('https://example.com/thumbnail.jpg'),
                 Forms\Components\TextInput::make('price')
                     ->required()
                     ->numeric()
@@ -86,20 +64,11 @@ class CourseDescriptionResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('instructor_position')
                     ->maxLength(255),
-                Forms\Components\FileUpload::make('instructor_image_url')
-                    ->label('Instructor Photo')
-                    ->image()
-                    ->disk('cloudinary')
-                    ->directory('instructors')
-                    ->imageEditor()
-                    ->imageEditorAspectRatios([
-                        '1:1',
-                    ])
-                    ->maxSize(1024) // 1MB
-                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                    ->previewable(true)
-                    ->downloadable(false)
-                    ->openable(false),
+                Forms\Components\TextInput::make('instructor_image_url')
+                    ->label('Instructor Photo URL')
+                    ->url()
+                    ->maxLength(255)
+                    ->placeholder('https://example.com/instructor.jpg'),
                 Forms\Components\TextInput::make('video_count')
                     ->required()
                     ->numeric()

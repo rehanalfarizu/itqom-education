@@ -9,6 +9,6 @@ return [
             'secure' => true
         ]
     ],
-    
+
     'folder' => env('CLOUDINARY_FOLDER', 'itqom-platform'),
 ];
