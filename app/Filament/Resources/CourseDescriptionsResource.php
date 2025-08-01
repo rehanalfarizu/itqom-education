@@ -232,12 +232,15 @@ class CourseDescriptionResource extends Resource
         ];
     }
 
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListCourseDescriptions::route('/'),
-            'create' => Pages\CreateCourseDescription::route('/create'),
-            'edit' => Pages\EditCourseDescription::route('/{record}/edit'),
-        ];
+
+        // Ubah bagian getPages() menjadi:
+public static function getPages(): array
+{
+    return [
+        'index' => Pages\ListCourseDescription::route('/'),
+        'create' => Pages\CreateCourseDescription::route('/create'),
+        'edit' => Pages\EditCourseDescription::route('/{record}/edit'),
+    ];
+
     }
 }
