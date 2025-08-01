@@ -612,9 +612,31 @@ public function checkPaymentStatus(Request $request, $orderId)
     /**
      * Grant course access to user - DENGAN VALIDASI DUPLIKAT
      */
-    protected function grantCourseAccess($userId, $courseId)
+    protected function grantCourseAccess($userProfileId, $courseId)
     {
         try {
+            // First, get the actual user_id from user_profile_id
+            $userProfile = DB::table('users_profile')->where('id', $userProfileId)->first();
+
+            if (!$userProfile) {
+                Log::error('User profile not found for granting access', [
+                    'user_profile_id' => $userProfileId,
+                    'course_id' => $courseId
+                ]);
+                return;
+            }
+
+            $userId = $userProfile->user_id;
+
+            // Check if user_courses table exists
+            if (!Schema::hasTable('user_courses')) {
+                Log::info('user_courses table does not exist, skipping access grant', [
+                    'user_id' => $userId,
+                    'course_id' => $courseId
+                ]);
+                return;
+            }
+
             // Check if access already granted
             $existingAccess = DB::table('user_courses')
                                ->where('user_id', $userId)
@@ -626,25 +648,27 @@ public function checkPaymentStatus(Request $request, $orderId)
                     'user_id' => $userId,
                     'course_id' => $courseId,
                     'enrolled_at' => now(),
-                    'progress' => 0,
-                    'completed' => false,
+                    'progress_percentage' => 0,
+                    'is_completed' => false,
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
 
                 Log::info('Course access granted', [
                     'user_id' => $userId,
+                    'user_profile_id' => $userProfileId,
                     'course_id' => $courseId
                 ]);
             } else {
                 Log::info('Course access already exists', [
                     'user_id' => $userId,
+                    'user_profile_id' => $userProfileId,
                     'course_id' => $courseId
                 ]);
             }
         } catch (Exception $e) {
             Log::error('Error granting course access', [
-                'user_id' => $userId,
+                'user_profile_id' => $userProfileId,
                 'course_id' => $courseId,
                 'error' => $e->getMessage()
             ]);
@@ -743,12 +767,36 @@ public function checkPaymentStatus(Request $request, $orderId)
         ]);
 
         $courseId = $request->course_id;
-        $userProfileId = $user->id;
 
-            Log::info('Checking course purchase', [
-                'user_id' => $userProfileId,
-                'course_id' => $courseId
+        // FIXED: Get the actual user_profile_id, not user.id
+        $userProfile = DB::table('users_profile')->where('user_id', $user->id)->first();
+
+        if (!$userProfile) {
+            // Try to find by email if not found by user_id
+            $userProfile = DB::table('users_profile')->where('email', $user->email)->first();
+        }
+
+        if (!$userProfile) {
+            Log::warning('User profile not found for course purchase check', [
+                'user_id' => $user->id,
+                'user_email' => $user->email
             ]);
+
+            return response()->json([
+                'success' => true,
+                'has_purchased' => false,
+                'has_access' => false,
+                'message' => 'User profile not found'
+            ]);
+        }
+
+        $userProfileId = $userProfile->id;
+
+        Log::info('Checking course purchase', [
+            'user_id' => $user->id,
+            'user_profile_id' => $userProfileId,
+            'course_id' => $courseId
+        ]);
 
             // Check if user already purchased this course
             $existingPayment = DB::table('payments')

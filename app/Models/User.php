@@ -50,4 +50,27 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserProfile::class);
     }
+
+    /**
+     * Get the user's enrolled courses.
+     */
+    public function userCourses()
+    {
+        return $this->hasMany(UserCourse::class);
+    }
+
+    /**
+     * Get the user's purchased courses through payments.
+     */
+    public function purchasedCourses()
+    {
+        return $this->hasManyThrough(
+            CourseDescription::class,
+            Payment::class,
+            'user_profile_id', // Foreign key on payments table
+            'id',              // Foreign key on course_description table
+            'id',              // Local key on users table
+            'course_id'        // Local key on payments table
+        )->where('payments.status', 'success');
+    }
 }

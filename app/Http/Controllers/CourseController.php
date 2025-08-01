@@ -74,9 +74,30 @@ class CourseController extends Controller
             Log::info("User ID: " . $user->id);
             Log::info("User Email: " . $user->email);
 
-            // Step 1: Get successful payments for this user
+            // Step 1: Get user_profile_id from users_profile table
+            $userProfile = DB::table('users_profile')->where('user_id', $user->id)->first();
+
+            if (!$userProfile) {
+                // Try to find by email if not found by user_id
+                $userProfile = DB::table('users_profile')->where('email', $user->email)->first();
+            }
+
+            if (!$userProfile) {
+                Log::info("No user profile found for user");
+                return response()->json([
+                    'success' => true,
+                    'courses' => [],
+                    'message' => 'No user profile found',
+                    'debug_info' => [
+                        'user_id' => $user->id,
+                        'method' => 'no_user_profile'
+                    ]
+                ]);
+            }
+
+            // Step 2: Get successful payments for this user_profile_id
             $successfulPayments = DB::table('payments')
-                ->where('user_profile_id', $user->id)
+                ->where('user_profile_id', $userProfile->id)
                 ->where('status', 'success')
                 ->orderBy('created_at', 'desc')
                 ->get();

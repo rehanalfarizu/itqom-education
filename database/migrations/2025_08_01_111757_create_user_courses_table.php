@@ -25,7 +25,7 @@ return new class extends Migration
 
             // Prevent duplicate enrollments
             $table->unique(['user_id', 'course_id']);
-            
+
             // Indexes for better performance
             $table->index(['user_id', 'is_completed']);
             $table->index(['course_id', 'progress_percentage']);
