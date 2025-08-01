@@ -4,6 +4,9 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DB;
+use App\Http\Controllers\Schema;
+
 
 // Halaman utama (Vue mount di sini misalnya)
 Route::get('/', function () {
