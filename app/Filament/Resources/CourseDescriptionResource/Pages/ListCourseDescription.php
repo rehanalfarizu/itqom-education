@@ -6,7 +6,7 @@ use App\Filament\Resources\CourseDescriptionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListCourseDescriptions extends ListRecords
+class ListCourseDescription extends ListRecords
 {
     protected static string $resource = CourseDescriptionResource::class;
 

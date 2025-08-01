@@ -178,7 +178,8 @@ public function createSnapToken(Request $request)
                 ->where('user_profile_id', $userProfileId)
                 ->where('course_id', $courseId)
                 ->where('status', 'pending')
-                ->where('created_at', '>', now()->subMinutes(30))
+                ->where('created_at', '>', now()->subSeconds(30)
+)
                 ->first();
 
             if ($existingPendingPayment) {

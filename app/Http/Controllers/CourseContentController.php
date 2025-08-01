@@ -26,7 +26,7 @@ class CourseContentController extends Controller
             // Check if any course descriptions exist at all
             $totalCourses = CourseDescription::count();
             $allCourses = CourseDescription::select('id', 'title')->get();
-            
+
             Log::info('Database check - Total courses: ' . $totalCourses, [
                 'all_courses' => $allCourses->toArray()
             ]);
@@ -36,8 +36,6 @@ class CourseContentController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'ID course tidak valid'
-                ], 400);
-            }
                 ], 400);
             }
 
@@ -90,7 +88,7 @@ class CourseContentController extends Controller
                             'judul' => $material['judul'] ?? 'Materi ' . ($index + 1),
                             'konten' => $material['konten'] ?? '<p>Konten akan segera tersedia.</p>',
                             'urutan' => $material['urutan'] ?? ($index + 1),
-                            'course_title' => $courseContent->course_title ?: $courseDescription->title,
+                            'course_title' => '<span style="color:red">' . ($courseContent->course_title ?: ($courseDescription->title ?? '')) . '</span>',
                             'course_description_id' => $courseContent->course_description_id
                         ];
                     })
