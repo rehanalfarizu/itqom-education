@@ -535,14 +535,14 @@ export default {
             console.log('📊 Received progress update for course:', courseId, progress);
 
             if (progress && typeof progress === 'object') {
-                this.$set(this.courseProgresses, courseId, {
+                this.courseProgresses[courseId] = {
                     completed: progress.completed_count || progress.completed || 0,
                     total: progress.total_materials || progress.total || 0,
                     percentage: progress.progress_percentage || progress.percentage || 0,
                     completedMateris: progress.completedMateris || [],
                     lastAccessed: progress.lastUpdated || new Date().toISOString(),
                     materialsSource: progress.materials_source || 'unknown'
-                });
+                };
 
                 // Update user stats based on new progress
                 this.updateUserStats();
@@ -558,14 +558,14 @@ export default {
             const { courseId, completed, total, percentage, completedMateris, courseTitle, lastAccessed } = event.detail;
             console.log('🔄 Syncing progress for course:', courseId);
 
-            this.$set(this.courseProgresses, courseId, {
+            this.courseProgresses[courseId] = {
                 completed: completed || 0,
                 total: total || 0,
                 percentage: percentage || 0,
                 completedMateris: completedMateris || [],
                 lastAccessed: lastAccessed || new Date().toISOString(),
                 courseTitle: courseTitle
-            });
+            };
 
             this.updateUserStats();
         },
@@ -583,13 +583,13 @@ export default {
 
             // Update progress if we don't have it yet
             if (!this.courseProgresses[courseId]) {
-                this.$set(this.courseProgresses, courseId, {
+                this.courseProgresses[courseId] = {
                     completed: 0,
                     total: totalMaterials,
                     percentage: 0,
                     completedMateris: [],
                     materialsSource: materialsSource
-                });
+                };
             }
         },
 
@@ -665,7 +665,7 @@ export default {
                 const results = await Promise.all(progressPromises);
 
                 results.forEach(({ courseId, progress }) => {
-                    this.$set(this.courseProgresses, courseId, progress);
+                    this.courseProgresses[courseId] = progress;
                 });
 
                 console.log('✅ All course progresses loaded:', this.courseProgresses);
