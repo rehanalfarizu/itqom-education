@@ -303,7 +303,8 @@ export default {
     async fetchCourses() {
       try {
         this.loading = true;
-        const response = await axios.get('https://itqom-platform-aa0ffce6a276.herokuapp.com/api/courses');
+        const baseURL = window.location.origin; // Use current domain
+        const response = await axios.get(`${baseURL}/api/courses`);
 
         // Check if response has success property (new API format)
         if (response.data.success) {
@@ -330,7 +331,8 @@ export default {
 
       try {
         this.loading = true;
-        const response = await axios.get(`https://itqom-platform-aa0ffce6a276.herokuapp.com/api/courses/category/${encodeURIComponent(category)}`);
+        const baseURL = window.location.origin; // Use current domain
+        const response = await axios.get(`${baseURL}/api/courses/category/${encodeURIComponent(category)}`);
 
         if (response.data.success) {
           this.courses = response.data.data;
@@ -347,7 +349,8 @@ export default {
 
     async fetchPopularCourses() {
       try {
-        const response = await axios.get('https://itqom-platform-aa0ffce6a276.herokuapp.com/api/courses/popular');
+        const baseURL = window.location.origin; // Use current domain
+        const response = await axios.get(`${baseURL}/api/courses/popular`);
 
         if (response.data.success) {
           // Popular courses loaded successfully

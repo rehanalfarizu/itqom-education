@@ -54,15 +54,15 @@ class CourseController extends Controller
                     'title' => $courseDesc->title,
                     'instructor' => $courseDesc->instructor_name,
                     'video_count' => $courseDesc->video_count . ' video',
-                    'duration' => $courseDesc->duration,
+                    'duration' => $courseDesc->duration, // integer sesuai migrasi
                     'original' => number_format((float)$courseDesc->price_discount, 0, ',', '.'),
                     'price' => number_format((float)$courseDesc->price, 0, ',', '.'),
-                    'image' => $courseDesc->image_url ?: '/images/default.jpg',
-                    'thumbnail' => $courseDesc->thumbnail_url,
-                    'category' => $courseDesc->tag,
+                    'image' => $courseDesc->image_url ?: '/images/default.jpg', // menggunakan accessor
+                    'thumbnail' => $courseDesc->thumbnail_url ?: '/images/default-thumb.jpg', // menggunakan accessor
+                    'category' => $courseDesc->tag, // sesuai field migrasi
                     'description' => $courseDesc->title,
                     'overview' => $courseDesc->overview,
-                    'features' => $courseDesc->features ?? [],
+                    'features' => $courseDesc->features ?? [], // json field sesuai migrasi
                     'instructor_name' => $courseDesc->instructor_name,
                     'instructor_position' => $courseDesc->instructor_position,
                     'instructor_image_url' => $courseDesc->instructor_image_url,
@@ -103,16 +103,16 @@ class CourseController extends Controller
                 'id' => $courseDescription->id,
                 'title' => $courseDescription->title,
                 'instructor' => $courseDescription->instructor_name,
-                'video_count' => $courseDescription->video_count,
-                'duration' => $courseDescription->duration,
-                'original_price' => $courseDescription->price_discount,
-                'price' => $courseDescription->price,
-                'image' => $courseDescription->image_url,
-                'thumbnail' => $courseDescription->thumbnail_url,
-                'category' => $courseDescription->tag,
+                'video_count' => $courseDescription->video_count, // integer sesuai migrasi
+                'duration' => $courseDescription->duration, // integer sesuai migrasi
+                'original_price' => $courseDescription->price_discount, // decimal sesuai migrasi
+                'price' => $courseDescription->price, // decimal sesuai migrasi
+                'image' => $courseDescription->image_url, // menggunakan accessor
+                'thumbnail' => $courseDescription->thumbnail_url, // menggunakan accessor
+                'category' => $courseDescription->tag, // sesuai field migrasi
                 'description' => $courseDescription->title,
                 'overview' => $courseDescription->overview,
-                'features' => $courseDescription->features ?? [],
+                'features' => $courseDescription->features ?? [], // json field
                 'instructor_name' => $courseDescription->instructor_name,
                 'instructor_position' => $courseDescription->instructor_position,
                 'instructor_image_url' => $courseDescription->instructor_image_url,
@@ -147,14 +147,14 @@ class CourseController extends Controller
                     'id' => $course->id,
                     'title' => $course->title,
                     'instructor' => $course->instructor_name,
-                    'video_count' => $course->video_count,
-                    'duration' => $course->duration,
-                    'price' => $course->price,
-                    'image' => $course->image_url,
-                    'thumbnail' => $course->thumbnail_url,
-                    'category' => $course->tag,
+                    'video_count' => $course->video_count, // integer sesuai migrasi
+                    'duration' => $course->duration, // integer sesuai migrasi
+                    'price' => $course->price, // decimal sesuai migrasi
+                    'image' => $course->image_url, // menggunakan accessor
+                    'thumbnail' => $course->thumbnail_url, // menggunakan accessor
+                    'category' => $course->tag, // sesuai field migrasi
                     'overview' => $course->overview,
-                    'features' => $course->features ?? [],
+                    'features' => $course->features ?? [], // json field
                 ];
             });
 
@@ -190,15 +190,15 @@ class CourseController extends Controller
                     'id' => $course->id,
                     'title' => $course->title,
                     'instructor' => $course->instructor_name,
-                    'video_count' => $course->video_count,
-                    'duration' => $course->duration,
-                    'price' => $course->price,
+                    'video_count' => $course->video_count, // integer sesuai migrasi
+                    'duration' => $course->duration, // integer sesuai migrasi
+                    'price' => $course->price, // decimal sesuai migrasi
                     'enrollment_count' => 0, // Bisa dikembangkan untuk menghitung dari payments
-                    'image' => $course->image_url,
-                    'thumbnail' => $course->thumbnail_url,
-                    'category' => $course->tag,
+                    'image' => $course->image_url, // menggunakan accessor
+                    'thumbnail' => $course->thumbnail_url, // menggunakan accessor
+                    'category' => $course->tag, // sesuai field migrasi
                     'overview' => $course->overview,
-                    'features' => $course->features ?? [],
+                    'features' => $course->features ?? [], // json field
                 ];
             });
 

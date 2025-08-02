@@ -299,7 +299,8 @@ export default {
       try {
         console.log(`Fetching course data for ID: ${this.courseId}`);
         // Use course-description endpoint to get data directly from CourseDescription table
-        const response = await axios.get(`https://itqom-platform-aa0ffce6a276.herokuapp.com/api/course-description/${this.courseId}`);
+        const baseURL = window.location.origin; // Use current domain
+        const response = await axios.get(`${baseURL}/api/course-description/${this.courseId}`);
         console.log('Course data response:', response.data);
 
         if (response.status !== 200) {

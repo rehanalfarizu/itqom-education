@@ -414,8 +414,10 @@ export default {
       this.error = null;
 
       try {
-        const response = await axios.get('https://itqom-platform-aa0ffce6a276.herokuapp.com/api/courses');
-        this.courses = response.data;
+        // Use local development URL instead of hardcoded production URL
+        const baseURL = window.location.origin; // http://127.0.0.1:8000 atau production URL
+        const response = await axios.get(`${baseURL}/api/courses`);
+        this.courses = response.data.data || response.data; // Handle different response formats
       } catch (error) {
         console.error('Gagal mengambil data kursus:', error);
         this.error = 'Gagal memuat data kursus. Silakan coba lagi.';
