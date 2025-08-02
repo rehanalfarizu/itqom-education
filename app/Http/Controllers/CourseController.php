@@ -22,7 +22,7 @@ class CourseController extends Controller
     {
         try {
             Log::info('CourseController@index called');
-            
+
             // Periksa koneksi database
             try {
                 DB::connection()->getPdo();
