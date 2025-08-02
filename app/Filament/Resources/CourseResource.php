@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CourseResource\Pages;
-use App\Models\Course;
+use App\Models\CourseDescription;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -14,7 +14,7 @@ use Filament\Tables\Columns\ImageColumn;
 
 class CourseResource extends Resource
 {
-    protected static ?string $model = Course::class;
+    protected static ?string $model = CourseDescription::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
 
@@ -62,54 +62,51 @@ class CourseResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id')
-                    ->label('ID')
+                    ->label('Course ID')
                     ->sortable(),
 
-                TextColumn::make('courseDescription.title')
-                    ->label('Source Course Description')
+                TextColumn::make('title')
+                    ->label('Course Title')
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
                     ->color('primary'),
 
-                TextColumn::make('title')
-                    ->label('Bridge Title')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('instructor')
+                TextColumn::make('instructor_name')
                     ->label('Instructor')
                     ->searchable(),
 
-                TextColumn::make('category')
+                TextColumn::make('tag')
                     ->label('Category')
                     ->badge()
                     ->color('success'),
 
                 TextColumn::make('price')
-                    ->label('Final Price')
+                    ->label('Price')
                     ->money('IDR')
                     ->sortable(),
 
-                TextColumn::make('original_price')
-                    ->label('Original Price')
+                TextColumn::make('price_discount')
+                    ->label('Discount Price')
                     ->money('IDR')
                     ->sortable(),
 
-                TextColumn::make('userCourses_count')
-                    ->label('Enrollments')
-                    ->counts('userCourses')
+                TextColumn::make('courses_count')
+                    ->label('Bridge Entries')
+                    ->counts('courses')
                     ->alignCenter()
                     ->badge()
                     ->color('info'),
 
-                TextColumn::make('created_at')
-                    ->label('Auto-Created')
-                    ->dateTime()
-                    ->sortable(),
+                TextColumn::make('user_courses_count')
+                    ->label('Enrollments')
+                    ->counts('userCourses')
+                    ->alignCenter()
+                    ->badge()
+                    ->color('warning'),
 
-                TextColumn::make('updated_at')
-                    ->label('Last Sync')
+                TextColumn::make('created_at')
+                    ->label('Created')
                     ->dateTime()
                     ->sortable()
                     ->since(),
@@ -123,8 +120,8 @@ class CourseResource extends Resource
             ->bulkActions([
                 // No bulk actions for read-only data
             ])
-            ->emptyStateHeading('No Course Bridge Data')
-            ->emptyStateDescription('Course bridge data is automatically created when you add Course Descriptions.')
+            ->emptyStateHeading('No Course Data')
+            ->emptyStateDescription('Course data is managed through Course Descriptions.')
             ->defaultSort('created_at', 'desc');
     }
 
