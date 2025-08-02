@@ -29,6 +29,9 @@ class CourseResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    // TEMPORARILY HIDDEN until Course model issues are resolved
+    protected static bool $shouldRegisterNavigation = false;
+
     // Read-only resource - no create/edit allowed
     public static function canCreate(): bool
     {
