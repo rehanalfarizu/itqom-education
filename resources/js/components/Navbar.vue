@@ -477,15 +477,34 @@ export default {
 
 <style scoped>
 .login {
-  @apply bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-300 font-medium;
+  background-color: #2563eb;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.login:hover {
+  background-color: #1d4ed8;
 }
 
 .signup {
-  @apply bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-300 font-medium;
+  background-color: #16a34a;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.signup:hover {
+  background-color: #15803d;
 }
 
 .router-link-active {
-  @apply text-yellow-300 font-semibold;
+  color: #fde047;
+  font-weight: 600;
 }
 
 /* Mobile menu animations */

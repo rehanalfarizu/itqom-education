@@ -13,6 +13,7 @@ export default defineConfig({
     laravel({
       input: ['resources/css/app.css', 'resources/js/app.js'],
       refresh: true,
+      buildDirectory: 'build',
     }),
     vue({
       template: {
@@ -24,7 +25,7 @@ export default defineConfig({
     }),
   ],
   build: {
-    manifest: true,
+    manifest: 'manifest.json',
     outDir: 'public/build',
     emptyOutDir: true,
     rollupOptions: {
@@ -40,8 +41,15 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000
   },
   server: {
+    host: 'localhost',
+    port: 5173,
+    cors: {
+      origin: ['http://localhost', 'https://itqom-platform.tech', 'https://itqom-platform-aa0ffce6a276.herokuapp.com'],
+      credentials: true
+    },
     hmr: {
       host: 'localhost',
+      port: 5173,
     },
   },
   define: {
