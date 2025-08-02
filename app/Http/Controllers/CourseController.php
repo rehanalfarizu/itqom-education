@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Course;
 use App\Models\CourseDescription;
 use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
@@ -21,7 +20,7 @@ class CourseController extends Controller
     public function index()
     {
         try {
-            Log::info('CourseController@index called');
+            Log::info('CourseController@index called - using CourseDescription as single source');
 
             // Periksa koneksi database
             try {
@@ -36,7 +35,7 @@ class CourseController extends Controller
                 ], 500);
             }
 
-            // Ambil data dari CourseDescription
+            // Ambil data dari CourseDescription sebagai satu-satunya sumber data
             $courseDescriptions = CourseDescription::all();
             Log::info('Found ' . $courseDescriptions->count() . ' course descriptions');
 
@@ -63,6 +62,10 @@ class CourseController extends Controller
                     'category' => $courseDesc->tag,
                     'description' => $courseDesc->title,
                     'overview' => $courseDesc->overview,
+                    'features' => $courseDesc->features ?? [],
+                    'instructor_name' => $courseDesc->instructor_name,
+                    'instructor_position' => $courseDesc->instructor_position,
+                    'instructor_image_url' => $courseDesc->instructor_image_url,
                 ];
             });
 
@@ -86,10 +89,10 @@ class CourseController extends Controller
     public function show($id)
     {
         try {
-            // Ambil course description langsung
-            $course = CourseDescription::find($id);
+            // Ambil course description langsung sebagai satu-satunya sumber data
+            $courseDescription = CourseDescription::find($id);
 
-            if (!$course) {
+            if (!$courseDescription) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Course not found'
@@ -97,24 +100,28 @@ class CourseController extends Controller
             }
 
             $courseData = [
-                'id' => $course->id,
-                'title' => $course->title,
-                'instructor' => $course->instructor_name,
-                'video_count' => $course->video_count,
-                'duration' => $course->duration,
-                'original_price' => $course->price_discount,
-                'price' => $course->price,
-                'image' => $course->image_url, // URL Cloudinary yang sudah dioptimasi
-                'thumbnail' => $course->thumbnail_url,
-                'category' => $course->tag,
-                'description' => $course->title,
-                'overview' => $course->overview,
-                'features' => $course->features ?? [],
+                'id' => $courseDescription->id,
+                'title' => $courseDescription->title,
+                'instructor' => $courseDescription->instructor_name,
+                'video_count' => $courseDescription->video_count,
+                'duration' => $courseDescription->duration,
+                'original_price' => $courseDescription->price_discount,
+                'price' => $courseDescription->price,
+                'image' => $courseDescription->image_url,
+                'thumbnail' => $courseDescription->thumbnail_url,
+                'category' => $courseDescription->tag,
+                'description' => $courseDescription->title,
+                'overview' => $courseDescription->overview,
+                'features' => $courseDescription->features ?? [],
+                'instructor_name' => $courseDescription->instructor_name,
+                'instructor_position' => $courseDescription->instructor_position,
+                'instructor_image_url' => $courseDescription->instructor_image_url,
             ];
 
             return response()->json([
                 'success' => true,
-                'data' => $courseData
+                'data' => $courseData,
+                'source' => 'course_description'
             ]);
 
         } catch (\Exception $e) {
@@ -128,14 +135,14 @@ class CourseController extends Controller
     }
 
     /**
-     * Get courses by category with Cloudinary integration
+     * Get courses by category using CourseDescription
      */
     public function byCategory($category)
     {
         try {
-            $courses = CourseDescription::where('tag', $category)->get();
+            $courseDescriptions = CourseDescription::where('tag', $category)->get();
 
-            $transformedCourses = $courses->map(function($course) {
+            $transformedCourses = $courseDescriptions->map(function($course) {
                 return [
                     'id' => $course->id,
                     'title' => $course->title,
@@ -146,12 +153,15 @@ class CourseController extends Controller
                     'image' => $course->image_url,
                     'thumbnail' => $course->thumbnail_url,
                     'category' => $course->tag,
+                    'overview' => $course->overview,
+                    'features' => $course->features ?? [],
                 ];
             });
 
             return response()->json([
                 'success' => true,
-                'data' => $transformedCourses
+                'data' => $transformedCourses,
+                'source' => 'course_description'
             ]);
 
         } catch (\Exception $e) {
@@ -165,32 +175,37 @@ class CourseController extends Controller
     }
 
     /**
-     * Get popular courses with Cloudinary integration
+     * Get popular courses using CourseDescription
      */
     public function popular()
     {
         try {
-            // Menggunakan CourseDescription dan sorting by created_at untuk sementara
-            $courses = CourseDescription::orderBy('created_at', 'desc')
+            // Menggunakan CourseDescription dengan sorting by created_at
+            $courseDescriptions = CourseDescription::orderBy('created_at', 'desc')
                 ->take(8)
                 ->get();
 
-            $transformedCourses = $courses->map(function($course) {
+            $transformedCourses = $courseDescriptions->map(function($course) {
                 return [
                     'id' => $course->id,
                     'title' => $course->title,
                     'instructor' => $course->instructor_name,
-                    'enrollment_count' => 0, // Dapat dihitung berdasarkan user_courses jika diperlukan
+                    'video_count' => $course->video_count,
+                    'duration' => $course->duration,
+                    'price' => $course->price,
+                    'enrollment_count' => 0, // Bisa dikembangkan untuk menghitung dari payments
                     'image' => $course->image_url,
                     'thumbnail' => $course->thumbnail_url,
-                    'price' => $course->price,
                     'category' => $course->tag,
+                    'overview' => $course->overview,
+                    'features' => $course->features ?? [],
                 ];
             });
 
             return response()->json([
                 'success' => true,
-                'data' => $transformedCourses
+                'data' => $transformedCourses,
+                'source' => 'course_description'
             ]);
 
         } catch (\Exception $e) {
@@ -269,66 +284,24 @@ class CourseController extends Controller
                     'order_id' => $payment->order_id
                 ]);
 
-                // Try to get course description from different possible table names
-                $courseDescription = null;
+                // Menggunakan CourseDescription model sebagai satu-satunya sumber data
+                $courseDescription = CourseDescription::find($payment->course_id);
 
-                // Method 1: Try course_descriptions table
-                try {
-                    $courseDescription = DB::table('course_descriptions')
-                        ->where('id', $payment->course_id)
-                        ->orWhere('course_id', $payment->course_id)
-                        ->first();
-
-                    if ($courseDescription) {
-                        Log::info("Found course in course_descriptions table");
-                    }
-                } catch (\Exception $e) {
-                    Log::info("course_descriptions table not found or error: " . $e->getMessage());
-                }
-
-                // Method 2: Try course_description table (singular)
-                if (!$courseDescription) {
-                    try {
-                        $courseDescription = DB::table('course_description')
-                            ->where('id', $payment->course_id)
-                            ->orWhere('course_id', $payment->course_id)
-                            ->first();
-
-                        if ($courseDescription) {
-                            Log::info("Found course in course_description table");
-                        }
-                    } catch (\Exception $e) {
-                        Log::info("course_description table not found or error: " . $e->getMessage());
-                    }
-                }
-
-                // Method 3: Try courses table directly
-                if (!$courseDescription) {
-                    try {
-                        $courseDescription = DB::table('courses')
-                            ->where('id', $payment->course_id)
-                            ->first();
-
-                        if ($courseDescription) {
-                            Log::info("Found course in courses table");
-                        }
-                    } catch (\Exception $e) {
-                        Log::info("courses table error: " . $e->getMessage());
-                    }
-                }
-
-                // If we found course data, add it to the array
                 if ($courseDescription) {
                     $courseData = [
                         'id' => $payment->course_id,
-                        'title' => $courseDescription->title ?? 'Course #' . $payment->course_id,
+                        'title' => $courseDescription->title,
                         'image_url' => $courseDescription->image_url ?? '/images/default-course.jpg',
                         'instructor_name' => $courseDescription->instructor_name ?? 'Unknown Instructor',
                         'duration' => $courseDescription->duration ?? 0,
                         'tag' => $courseDescription->tag ?? 'General',
                         'purchased_at' => $payment->created_at,
                         'payment_status' => $payment->status,
-                        'order_id' => $payment->order_id
+                        'order_id' => $payment->order_id,
+                        'price' => $courseDescription->price,
+                        'video_count' => $courseDescription->video_count,
+                        'overview' => $courseDescription->overview,
+                        'features' => $courseDescription->features ?? []
                     ];
 
                     $purchasedCourses[] = $courseData;
@@ -336,7 +309,7 @@ class CourseController extends Controller
                 } else {
                     Log::warning("Could not find course description for course_id: " . $payment->course_id);
 
-                    // Add course with minimal data
+                    // Add course with minimal data jika tidak ditemukan
                     $purchasedCourses[] = [
                         'id' => $payment->course_id,
                         'title' => 'Course #' . $payment->course_id,
