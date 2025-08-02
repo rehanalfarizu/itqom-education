@@ -149,12 +149,9 @@
               >
                 <!-- Course Image -->
                 <div class="relative h-40 overflow-hidden">
-                  <CloudinaryImage
+                  <OptimizedImage
                     :src="course.image"
                     :alt="course.title"
-                    :width="400"
-                    :height="300"
-                    crop="fill"
                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
 
@@ -267,12 +264,12 @@
 import axios from 'axios';
 import Swiper from 'swiper';
 import 'swiper/swiper-bundle.css';
-import CloudinaryImage from '../CloudinaryImage.vue';
+import OptimizedImage from '../OptimizedImage.vue';
 
 export default {
   name: 'Course',
   components: {
-    CloudinaryImage
+    OptimizedImage
   },
   data() {
     return {
@@ -316,7 +313,8 @@ export default {
           this.courses = response.data;
         }
 
-        console.log('Courses loaded:', this.courses.length);
+        // Courses loaded successfully
+        // console.log('Courses loaded:', this.courses.length);
       } catch (error) {
         console.error('Gagal mengambil data kursus:', error);
         this.courses = [];
@@ -352,7 +350,8 @@ export default {
         const response = await axios.get('https://itqom-platform-aa0ffce6a276.herokuapp.com/api/courses/popular');
 
         if (response.data.success) {
-          console.log('Popular courses loaded:', response.data.data.length);
+          // Popular courses loaded successfully
+          // console.log('Popular courses loaded:', response.data.data.length);
           return response.data.data;
         }
         return [];

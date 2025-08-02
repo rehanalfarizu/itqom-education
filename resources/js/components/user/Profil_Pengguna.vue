@@ -215,13 +215,13 @@ export default {
       }
     },
 
-    // *** FIXED: Cloudinary Avatar URL Handler ***
+    // *** Avatar URL Handler - Backend akan handle Cloudinary ***
     processAvatarUrl(avatarPath) {
       if (!avatarPath) {
         return '/image/hajisodikin.jpg'; // Default avatar
       }
 
-      // Jika sudah berupa URL lengkap (Cloudinary), gunakan langsung
+      // Jika sudah berupa URL lengkap, gunakan langsung
       if (avatarPath.startsWith('http://') || avatarPath.startsWith('https://')) {
         return avatarPath;
       }
@@ -297,9 +297,9 @@ export default {
     handleAvatarChange(event) {
       const file = event.target.files[0];
       if (file) {
-        // *** FIXED: Update validation for Cloudinary ***
+        // File validation
         const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
-        const maxSize = 5 * 1024 * 1024; // 5MB for Cloudinary
+        const maxSize = 5 * 1024 * 1024; // 5MB
 
         if (!validTypes.includes(file.type)) {
           this.errorMessage = 'Format file tidak didukung. Gunakan JPEG, PNG, JPG, GIF, atau WebP.';
@@ -308,7 +308,7 @@ export default {
         }
 
         if (file.size > maxSize) {
-          this.errorMessage = 'Ukuran file terlalu besar. Maksimal 5MB untuk Cloudinary.';
+          this.errorMessage = 'Ukuran file terlalu besar. Maksimal 5MB.';
           event.target.value = '';
           return;
         }
@@ -392,7 +392,7 @@ export default {
 
         this.successMessage = response.data.message || 'Data berhasil disimpan!';
 
-        // *** FIXED: Handle Cloudinary avatar URL from response ***
+        // Handle avatar URL from response
         if (response.data.avatar_url) {
           this.currentAvatarPreviewUrl = this.processAvatarUrl(response.data.avatar_url);
           console.log('🎉 Avatar updated to:', this.currentAvatarPreviewUrl);

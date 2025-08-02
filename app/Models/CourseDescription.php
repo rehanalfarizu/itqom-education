@@ -54,6 +54,7 @@ class CourseDescription extends Model
 
     /**
      * Accessor untuk mendapatkan URL gambar yang sudah dioptimasi
+     * Backend akan menangani Cloudinary secara internal
      */
     public function getImageUrlAttribute($value): ?string
     {
@@ -67,24 +68,48 @@ class CourseDescription extends Model
         }
 
         // Untuk production (Heroku), gunakan Cloudinary
-        if (app()->environment('production') || isset($_ENV['DYNO'])) {
+        if (app()->environment('production') || config('app.use_cloudinary', false)) {
             try {
                 $cloudinaryService = app(CloudinaryService::class);
-                return $cloudinaryService->getOptimizedUrl($value, [
+                $optimizedUrl = $cloudinaryService->getOptimizedUrl($value, [
                     'width' => 800,
                     'height' => 450,
-                    'crop' => 'fill'
+                    'crop' => 'fill',
+                    'quality' => 'auto',
+                    'format' => 'auto'
                 ]);
+
+                // Log untuk debugging
+                \Illuminate\Support\Facades\Log::info('Cloudinary URL generated', [
+                    'original' => $value,
+                    'optimized' => $optimizedUrl
+                ]);
+
+                return $optimizedUrl;
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::warning('Cloudinary failed for image: ' . $e->getMessage());
-                // Fallback ke URL default jika Cloudinary gagal
+                \Illuminate\Support\Facades\Log::warning('Cloudinary failed for image: ' . $e->getMessage(), [
+                    'image' => $value,
+                    'error' => $e->getMessage()
+                ]);
+
+                // Fallback: jika Cloudinary gagal, coba sebagai path lokal
+                if (str_starts_with($value, '/storage/') || str_starts_with($value, 'storage/')) {
+                    return url($value);
+                }
+
+                // Ultimate fallback
                 return '/images/default-course.jpg';
             }
         }
 
-        // Jika berupa path storage lokal (untuk development)
+        // Untuk development, gunakan storage lokal
         if (str_starts_with($value, '/storage/') || str_starts_with($value, 'storage/')) {
             return url($value);
+        }
+
+        // Jika path relatif, tambahkan storage prefix
+        if (!str_starts_with($value, '/') && !str_starts_with($value, 'http')) {
+            return url('/storage/' . $value);
         }
 
         // Default fallback

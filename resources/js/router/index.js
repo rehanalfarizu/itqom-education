@@ -52,7 +52,8 @@ function isAuthenticated() {
 
 // Navigation Guard Global
 router.beforeEach((to, from, next) => {
-  console.log('🛣️ Route change:', { from: from.path, to: to.path });
+  // Debug logging (comment out in production)
+   console.log('🛣️ Route change:', { from: from.path, to: to.path });
 
   // Jika rute butuh login dan user belum login, redirect ke login
   if (to.meta.requiresAuth && !isAuthenticated()) {
