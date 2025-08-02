@@ -31,7 +31,6 @@
                 },
             }
         </script>
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
 
     <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />

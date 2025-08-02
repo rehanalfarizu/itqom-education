@@ -28,7 +28,43 @@ class CourseDescriptionSeeder extends Seeder
             ]
         ]);
 
-        // PANGGIL createOrUpdateCourse() secara manual
-        $cd->createOrUpdateCourse();
+        // Create additional course data untuk testing
+        CourseDescription::create([
+            'title' => 'React Native Mobile Development',
+            'tag' => 'Mobile Development', 
+            'overview' => 'Build cross-platform mobile apps with React Native. Learn to create iOS and Android apps from a single codebase.',
+            'price' => 899000,
+            'price_discount' => 699000,
+            'instructor_name' => 'Maximilian Schwarzmüller',
+            'instructor_position' => 'React & React Native Expert',
+            'image_url' => 'images/react-native.jpg',
+            'thumbnail' => 'thumbs/react-native-thumb.jpg',
+            'video_count' => 62,
+            'duration' => 38,
+            'features' => [
+                'Build Real Apps',
+                'iOS & Android Publishing',
+                'State Management'
+            ]
+        ]);
+
+        CourseDescription::create([
+            'title' => 'UI/UX Design Masterclass',
+            'tag' => 'Design',
+            'overview' => 'Master the art of UI/UX design with Figma, Adobe XD, and design thinking principles.',
+            'price' => 799000,
+            'price_discount' => 599000,
+            'instructor_name' => 'Sarah Johnson',
+            'instructor_position' => 'Senior UI/UX Designer at Google',
+            'image_url' => 'images/ui-ux-design.jpg',
+            'thumbnail' => 'thumbs/ui-ux-thumb.jpg',
+            'video_count' => 45,
+            'duration' => 32,
+            'features' => [
+                'Design System Creation',
+                'User Research Methods',
+                'Prototype Development'
+            ]
+        ]);
     }
 }
