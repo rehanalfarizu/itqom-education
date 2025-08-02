@@ -6,6 +6,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseContentController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,6 +55,13 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
     Route::get('/my-courses', [CourseController::class, 'myCourses']);
+
+    // Course Purchase Routes
+    Route::post('/purchase/initiate', [PurchaseController::class, 'initiatePurchase']);
+    Route::post('/purchase/complete', [PurchaseController::class, 'completePurchase']);
+    Route::get('/purchase/my-courses', [PurchaseController::class, 'getUserCourses']);
+    Route::post('/purchase/complete', [PurchaseController::class, 'completePurchase']);
+    Route::get('/purchase/my-courses', [PurchaseController::class, 'getUserCourses']);
 
     // User Profile Routes
     Route::get('/profile', [UserProfileController::class, 'show']);

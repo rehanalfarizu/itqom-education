@@ -37,11 +37,19 @@ class CourseDescription extends Model
     protected $appends = ['image_url_optimized', 'thumbnail_url'];
 
     /**
-     * Relasi ke Course (one-to-many)
+     * Relasi ke Course (one-to-many) - for purchase/enrollment bridge
      */
     public function courses()
     {
         return $this->hasMany(Course::class, 'course_description_id');
+    }
+
+    /**
+     * Relasi ke UserCourse untuk tracking enrollment langsung
+     */
+    public function userCourses()
+    {
+        return $this->hasMany(UserCourse::class, 'course_id');
     }
 
     /**
@@ -50,6 +58,46 @@ class CourseDescription extends Model
     public function courseContents()
     {
         return $this->hasMany(CourseContent::class, 'course_description_id');
+    }
+
+    /**
+     * Method untuk membuat course entry otomatis setelah course description dibuat
+     */
+    protected static function booted()
+    {
+        static::created(function ($courseDescription) {
+            // Auto-create course entry untuk sistem pembelian
+            Course::create([
+                'course_description_id' => $courseDescription->id,
+                'title' => $courseDescription->title,
+                'instructor' => $courseDescription->instructor_name,
+                'video_count' => $courseDescription->video_count,
+                'duration' => $courseDescription->duration . ' minutes',
+                'original_price' => $courseDescription->price,
+                'price' => $courseDescription->price_discount ?? $courseDescription->price,
+                'image' => $courseDescription->image_url,
+                'category' => $courseDescription->tag,
+            ]);
+        });
+
+        static::updated(function ($courseDescription) {
+            // Update course entry yang terkait
+            $courseDescription->courses()->update([
+                'title' => $courseDescription->title,
+                'instructor' => $courseDescription->instructor_name,
+                'video_count' => $courseDescription->video_count,
+                'duration' => $courseDescription->duration . ' minutes',
+                'original_price' => $courseDescription->price,
+                'price' => $courseDescription->price_discount ?? $courseDescription->price,
+                'image' => $courseDescription->image_url,
+                'category' => $courseDescription->tag,
+            ]);
+        });
+
+        static::deleted(function ($courseDescription) {
+            // Cascade delete course entries
+            $courseDescription->courses()->delete();
+        });
     }
 
     /**

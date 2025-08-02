@@ -226,6 +226,20 @@ class CourseDescriptionResource extends Resource
                     ->sortable()
                     ->toggleable(),
 
+                TextColumn::make('courses_count')
+                    ->label('Course Entries')
+                    ->counts('courses')
+                    ->alignCenter()
+                    ->badge()
+                    ->color('success'),
+
+                TextColumn::make('user_courses_count')
+                    ->label('Enrollments')
+                    ->counts('userCourses')
+                    ->alignCenter()
+                    ->badge()
+                    ->color('info'),
+
                 TextColumn::make('created_at')
                     ->label('Created')
                     ->dateTime()
