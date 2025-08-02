@@ -32,22 +32,4 @@ class Course extends Model
     {
         return $this->belongsTo(CourseDescription::class, 'course_description_id');
     }
-
-    // Relasi ke UserCourse untuk mendapatkan data enrollment
-    public function userCourses()
-    {
-        return $this->hasMany(UserCourse::class, 'course_id', 'course_description_id');
-    }
-
-    // Relasi ke CourseContent
-    public function courseContents()
-    {
-        return $this->hasMany(CourseContent::class, 'course_id', 'course_description_id');
-    }
-
-    // Accessor untuk mendapatkan jumlah students
-    public function getStudentsCountAttribute()
-    {
-        return $this->userCourses()->count();
-    }
 }
