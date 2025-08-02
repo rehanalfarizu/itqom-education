@@ -142,6 +142,28 @@ class CourseContentController extends Controller
 
             // Calculate actual total materials
             $actualTotal = max($materis->count(), $totalMaterisFromCourseDescription);
+            
+            // PROTECTION: Ensure minimum total to prevent 200% progress
+            // If we have placeholder materials, make sure there are at least as many
+            // as the highest reasonable progress expectation
+            if (!$courseContent && $actualTotal < 5) {
+                $actualTotal = max($actualTotal, 5); // Minimum 5 materials to prevent overload
+                
+                // Add more placeholder materials if needed
+                while ($materis->count() < $actualTotal) {
+                    $nextIndex = $materis->count() + 1;
+                    $materis[] = [
+                        'id' => $nextIndex,
+                        'slug' => 'course-' . $courseDescriptionId . '-materi-' . $nextIndex,
+                        'judul' => 'Materi ' . $nextIndex . ' - ' . $courseDescription->title,
+                        'konten' => '<p>Materi ini akan segera tersedia. Silakan tunggu update dari instruktur.</p>',
+                        'urutan' => $nextIndex,
+                        'course_title' => $courseDescription->title,
+                        'course_description_id' => $courseDescriptionId
+                    ];
+                }
+                $materis = collect($materis);
+            }
 
             // Enhanced course description data
             $courseDescriptionData = [
@@ -183,7 +205,10 @@ class CourseContentController extends Controller
             Log::info('Response prepared successfully', [
                 'course_title' => $courseDescription->title,
                 'materis_count' => $actualTotal,
-                'materials_source' => $courseContent ? 'course_content' : 'course_description'
+                'materials_source' => $courseContent ? 'course_content' : 'course_description',
+                'video_count_from_db' => $courseDescription->video_count,
+                'total_materials_calculated' => $actualTotal,
+                'protection_applied' => !$courseContent && $actualTotal >= 5 ? 'yes' : 'no'
             ]);
 
             return response()->json($response);

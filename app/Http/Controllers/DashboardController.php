@@ -17,9 +17,26 @@ class DashboardController extends Controller
         // 1. Dapatkan user yang sedang login
         $user = Auth::user();
 
-        // 2. Ambil data dari database yang berhubungan dengan user ini
-        //    (Ini adalah contoh, sesuaikan dengan struktur database Anda)
-        $progress = $user->progress()->firstOrCreate([], ['completed_modules' => 9, 'total_modules' => 20]); // Misal: 9 dari 20 modul
+        // 2. Ambil data real dari UserCourse dan CourseContent
+        $userCourses = $user->userCourses;
+        $totalCourses = $userCourses->count();
+        $completedCourses = $userCourses->where('progress_percentage', 100)->count();
+        
+        // Alternatif: hitung dari course content yang sudah diselesaikan
+        $totalModules = 0;
+        $completedModules = 0;
+        
+        foreach ($userCourses as $userCourse) {
+            $courseContents = $userCourse->course ? $userCourse->course->courseDescription->courseContents : collect();
+            $totalModules += $courseContents->count();
+            $completedModules += floor($courseContents->count() * ($userCourse->progress_percentage / 100));
+        }
+        
+        // Fallback jika tidak ada data
+        if ($totalModules == 0) {
+            $totalModules = 1; // Hindari division by zero
+            $completedModules = 0;
+        }
         $activeCourse = $user->activeCourse()->first(); // Misal: kursus yang sedang aktif
         $nextSession = $user->nextMentoringSession()->first(); // Misal: jadwal mentoring
         $notifications = $user->unreadNotifications()->take(3)->get(); // Misal: 3 notifikasi terbaru
@@ -38,9 +55,9 @@ class DashboardController extends Controller
 
             // Data untuk Kartu Progres
             'progress' => [
-                'completed_modules' => $progress->completed_modules,
-                'total_modules' => $progress->total_modules,
-                'percentage' => round(($progress->completed_modules / $progress->total_modules) * 100),
+                'completed_modules' => $completedModules,
+                'total_modules' => $totalModules,
+                'percentage' => $totalModules > 0 ? round(($completedModules / $totalModules) * 100) : 0,
             ],
 
             // Data untuk Kartu Program Aktif

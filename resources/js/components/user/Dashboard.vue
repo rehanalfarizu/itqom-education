@@ -719,18 +719,24 @@ export default {
 
                     const completed = completedMateris.length;
                     const total = materis.length;
-                    const percentage = total > 0 ? (completed / total) * 100 : 0;
+                    
+                    // PROTECTION: Prevent overload progress > 100%
+                    const adjustedTotal = Math.max(total, completed); // Ensure total >= completed
+                    const percentage = adjustedTotal > 0 ? (completed / adjustedTotal) * 100 : 0;
+                    const clampedPercentage = Math.min(percentage, 100); // Cap at 100%
 
                     console.log(`✅ Progress loaded for course ${courseId}:`, {
                         completed: `${completed}/${total}`,
-                        percentage: `${Math.round(percentage)}%`,
+                        adjustedTotal: adjustedTotal,
+                        originalPercentage: `${Math.round(percentage)}%`,
+                        clampedPercentage: `${Math.round(clampedPercentage)}%`,
                         materialsSource: courseStats.materials_source
                     });
 
                     return {
                         completed,
-                        total,
-                        percentage,
+                        total: adjustedTotal, // Use adjusted total to prevent overload
+                        percentage: clampedPercentage, // Use clamped percentage
                         completedMateris,
                         materialsSource: courseStats.materials_source || 'course_content'
                     };
