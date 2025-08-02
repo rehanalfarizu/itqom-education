@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\CourseDescription;
 use App\Services\CloudinaryService;
 
 class Course extends Model
@@ -12,7 +11,6 @@ class Course extends Model
     use HasFactory;
 
     protected $fillable = [
-        'course_description_id',
         'title',
         'instructor',
         'video_count',
@@ -20,7 +18,9 @@ class Course extends Model
         'original_price',
         'price',
         'image',
-        'category'
+        'category',
+        'description',
+        'overview'
     ];
 
     protected $casts = [
@@ -29,12 +29,6 @@ class Course extends Model
     ];
 
     protected $appends = ['image_url', 'thumbnail_url'];
-
-    // Relasi ke CourseDescription
-    public function courseDescription()
-    {
-        return $this->belongsTo(CourseDescription::class, 'course_description_id');
-    }
 
     // Relasi ke UserCourse untuk tracking enrollment
     public function userCourses()

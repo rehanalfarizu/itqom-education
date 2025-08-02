@@ -5,86 +5,177 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CourseDescriptionResource\Pages;
 use App\Filament\Resources\CourseDescriptionResource\RelationManagers;
 use App\Models\CourseDescription;
+use App\Services\CloudinaryService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Repeater;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 
 class CourseDescriptionResource extends Resource
 {
     protected static ?string $model = CourseDescription::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
 
-    protected static ?string $navigationLabel = 'Course Descriptions';
+    protected static ?string $navigationLabel = 'Courses';
 
-    protected static ?string $modelLabel = 'Course Description';
+    protected static ?string $modelLabel = 'Course';
 
-    protected static ?string $pluralModelLabel = 'Course Description';
+    protected static ?string $pluralModelLabel = 'Courses';
+
+    protected static ?string $navigationGroup = 'Course Management';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('title')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('tag')
-                    ->label('Category/Tag')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Textarea::make('overview')
-                    ->required()
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('image_url')
-                    ->label('Course Image URL')
-                    ->url()
-                    ->maxLength(255)
-                    ->placeholder('https://example.com/image.jpg')
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('thumbnail')
-                    ->label('Thumbnail URL')
-                    ->url()
-                    ->maxLength(255)
-                    ->placeholder('https://example.com/thumbnail.jpg'),
-                Forms\Components\TextInput::make('price')
-                    ->required()
-                    ->numeric()
-                    ->prefix('Rp')
-                    ->step(1000),
-                Forms\Components\TextInput::make('price_discount')
-                    ->numeric()
-                    ->prefix('Rp')
-                    ->step(1000),
-                Forms\Components\TextInput::make('instructor_name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('instructor_position')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('instructor_image_url')
-                    ->label('Instructor Photo URL')
-                    ->url()
-                    ->maxLength(255)
-                    ->placeholder('https://example.com/instructor.jpg'),
-                Forms\Components\TextInput::make('video_count')
-                    ->required()
-                    ->numeric()
-                    ->minValue(1),
-                Forms\Components\TextInput::make('duration')
-                    ->required()
-                    ->numeric()
-                    ->suffix('hours')
-                    ->minValue(0.5)
-                    ->step(0.5),
-                Forms\Components\Repeater::make('features')
+                // Course Basic Information
+                Forms\Components\Section::make('Course Information')
                     ->schema([
-                        Forms\Components\TextInput::make('feature')
+                        TextInput::make('title')
+                            ->label('Course Title')
                             ->required()
+                            ->maxLength(255)
+                            ->columnSpanFull(),
+
+                        TextInput::make('tag')
+                            ->label('Category/Tag')
+                            ->required()
+                            ->maxLength(255),
+
+                        TextInput::make('instructor_name')
+                            ->label('Instructor Name')
+                            ->required()
+                            ->maxLength(255),
+
+                        TextInput::make('instructor_position')
+                            ->label('Instructor Position')
+                            ->maxLength(255),
+
+                        Textarea::make('overview')
+                            ->label('Course Overview')
+                            ->required()
+                            ->rows(4)
+                            ->columnSpanFull(),
                     ])
-                    ->columnSpanFull(),
+                    ->columns(2),
+
+                // Course Media
+                Forms\Components\Section::make('Course Media')
+                    ->schema([
+                        FileUpload::make('image_url')
+                            ->label('Course Image')
+                            ->image()
+                            ->disk('public')
+                            ->directory('course-images')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
+                            ->maxSize(5120) // 5MB
+                            ->imageEditor()
+                            ->imageResizeMode('cover')
+                            ->imageCropAspectRatio('16:9')
+                            ->imageResizeTargetWidth('800')
+                            ->imageResizeTargetHeight('450')
+                            ->helperText('Upload course image with 16:9 aspect ratio. Max: 5MB')
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if ($state) {
+                                    // Use hybrid upload when file is uploaded
+                                    $cloudinaryService = app(CloudinaryService::class);
+                                    try {
+                                        $hybridResult = $cloudinaryService->uploadImageHybrid($state);
+                                        if ($hybridResult['success']) {
+                                            $set('image_url', $hybridResult['path']);
+                                            Log::info('Hybrid upload successful: ' . $hybridResult['path']);
+                                        }
+                                    } catch (\Exception $e) {
+                                        Log::warning('Hybrid upload failed, using local path: ' . $e->getMessage());
+                                        // Continue with local path if hybrid fails
+                                    }
+                                }
+                            })
+                            ->columnSpanFull(),
+
+                        FileUpload::make('instructor_image_url')
+                            ->label('Instructor Photo')
+                            ->image()
+                            ->disk('public')
+                            ->directory('instructor-images')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
+                            ->maxSize(2048) // 2MB
+                            ->imageEditor()
+                            ->imageResizeMode('cover')
+                            ->imageCropAspectRatio('1:1')
+                            ->imageResizeTargetWidth('300')
+                            ->imageResizeTargetHeight('300')
+                            ->helperText('Upload instructor photo with 1:1 aspect ratio. Max: 2MB')
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if ($state) {
+                                    $cloudinaryService = app(CloudinaryService::class);
+                                    try {
+                                        $hybridResult = $cloudinaryService->uploadImageHybrid($state);
+                                        if ($hybridResult['success']) {
+                                            $set('instructor_image_url', $hybridResult['path']);
+                                        }
+                                    } catch (\Exception $e) {
+                                        Log::warning('Instructor image hybrid upload failed: ' . $e->getMessage());
+                                    }
+                                }
+                            }),
+                    ])
+                    ->columns(2),
+
+                // Course Details
+                Forms\Components\Section::make('Course Details')
+                    ->schema([
+                        TextInput::make('video_count')
+                            ->label('Number of Videos')
+                            ->numeric()
+                            ->required()
+                            ->minValue(1),
+
+                        TextInput::make('duration')
+                            ->label('Course Duration')
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('e.g., 10 hours'),
+
+                        TextInput::make('price')
+                            ->label('Original Price')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->required()
+                            ->minValue(0),
+
+                        TextInput::make('price_discount')
+                            ->label('Discounted Price')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->minValue(0),
+
+                        Forms\Components\Repeater::make('features')
+                            ->label('Course Features')
+                            ->schema([
+                                TextInput::make('feature')
+                                    ->label('Feature')
+                                    ->required()
+                                    ->maxLength(255),
+                            ])
+                            ->addActionLabel('Add Feature')
+                            ->collapsible()
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
             ]);
     }
 
@@ -92,41 +183,51 @@ class CourseDescriptionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image_url')
-                    ->label('Image')
-                    ->circular()
-                    ->size(50),
-                Tables\Columns\TextColumn::make('title')
+                ImageColumn::make('image_url')
+                    ->label('Course Image')
+                    ->disk('public')
+                    ->size(60),
+
+                TextColumn::make('title')
+                    ->label('Course Title')
                     ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('tag')
+                    ->sortable()
+                    ->weight('medium'),
+
+                TextColumn::make('tag')
                     ->label('Category')
                     ->searchable()
                     ->badge()
                     ->color('primary'),
-                Tables\Columns\TextColumn::make('instructor_name')
+
+                TextColumn::make('instructor_name')
+                    ->label('Instructor')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('price')
+
+                TextColumn::make('video_count')
+                    ->label('Videos')
+                    ->sortable()
+                    ->alignCenter()
+                    ->suffix(' videos'),
+
+                TextColumn::make('duration')
+                    ->label('Duration')
+                    ->sortable(),
+
+                TextColumn::make('price')
+                    ->label('Price')
                     ->money('IDR')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('price_discount')
+
+                TextColumn::make('price_discount')
+                    ->label('Discount Price')
                     ->money('IDR')
                     ->sortable()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('video_count')
-                    ->numeric()
-                    ->sortable()
-                    ->suffix(' videos'),
-                Tables\Columns\TextColumn::make('duration')
-                    ->suffix(' hours')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+
+                TextColumn::make('created_at')
+                    ->label('Created')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
