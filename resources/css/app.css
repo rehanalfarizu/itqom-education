@@ -1,15 +1,9 @@
-@import "tailwindcss/preflight";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 
 /* Custom CSS untuk ITQOM Platform */
 :root {
     --primary-dark: #564AB1;
     --primary-light: #B0ABDB;
-}
-
-/* Custom classes dengan reference directive untuk v4 */
-@reference {
-  @import "tailwindcss/utilities";
 }
 
 .btn-primary {
