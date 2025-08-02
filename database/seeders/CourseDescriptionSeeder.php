@@ -31,7 +31,7 @@ class CourseDescriptionSeeder extends Seeder
         // Create additional course data untuk testing
         CourseDescription::create([
             'title' => 'React Native Mobile Development',
-            'tag' => 'Mobile Development', 
+            'tag' => 'Mobile Development',
             'overview' => 'Build cross-platform mobile apps with React Native. Learn to create iOS and Android apps from a single codebase.',
             'price' => 899000,
             'price_discount' => 699000,
