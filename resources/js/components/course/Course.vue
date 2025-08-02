@@ -149,11 +149,14 @@
               >
                 <!-- Course Image -->
                 <div class="relative h-40 overflow-hidden">
-                  <img
+                  <CloudinaryImage
                     :src="course.image"
                     :alt="course.title"
+                    :width="400"
+                    :height="300"
+                    crop="fill"
                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  >
+                  />
 
                   <!-- Category Badge -->
                   <div class="absolute top-3 left-3">
@@ -264,20 +267,25 @@
 import axios from 'axios';
 import Swiper from 'swiper';
 import 'swiper/swiper-bundle.css';
+import CloudinaryImage from '../CloudinaryImage.vue';
 
 export default {
   name: 'Course',
+  components: {
+    CloudinaryImage
+  },
   data() {
     return {
       selectedCategory: '', // Changed to single category
       courses: [],
       categories: [
-        { id: 0, name: 'Semua Kategori' }, // Added "All" option
-        { id: 1, name: 'Web Programming' },
-        { id: 2, name: 'Mobile Programming' },
-        { id: 3, name: 'Fullstack Development' },
-        { id: 4, name: 'Backend Development' },
-        { id: 5, name: 'UI/UX' }
+        { id: 0, name: 'Semua Kategori' },
+        { id: 1, name: 'Programming' },
+        { id: 2, name: 'Design' },
+        { id: 3, name: 'Marketing' },
+        { id: 4, name: 'Business' },
+        { id: 5, name: 'Photography' },
+        { id: 6, name: 'Music' }
       ],
       isLoggedIn: false,
       userName: '',
@@ -299,15 +307,64 @@ export default {
       try {
         this.loading = true;
         const response = await axios.get('https://itqom-platform-aa0ffce6a276.herokuapp.com/api/courses');
-        this.courses = response.data;
+
+        // Check if response has success property (new API format)
+        if (response.data.success) {
+          this.courses = response.data.data;
+        } else {
+          // Fallback for old API format
+          this.courses = response.data;
+        }
+
+        console.log('Courses loaded:', this.courses.length);
       } catch (error) {
         console.error('Gagal mengambil data kursus:', error);
+        this.courses = [];
       } finally {
         this.loading = false;
       }
     },
+
+    async fetchCoursesByCategory(category) {
+      if (!category || category === 'Semua Kategori') {
+        return this.fetchCourses();
+      }
+
+      try {
+        this.loading = true;
+        const response = await axios.get(`https://itqom-platform-aa0ffce6a276.herokuapp.com/api/courses/category/${encodeURIComponent(category)}`);
+
+        if (response.data.success) {
+          this.courses = response.data.data;
+        } else {
+          this.courses = [];
+        }
+      } catch (error) {
+        console.error('Gagal mengambil data kursus berdasarkan kategori:', error);
+        this.courses = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchPopularCourses() {
+      try {
+        const response = await axios.get('https://itqom-platform-aa0ffce6a276.herokuapp.com/api/courses/popular');
+
+        if (response.data.success) {
+          console.log('Popular courses loaded:', response.data.data.length);
+          return response.data.data;
+        }
+        return [];
+      } catch (error) {
+        console.error('Gagal mengambil kursus populer:', error);
+        return [];
+      }
+    },
     selectCategory(categoryName) {
       this.selectedCategory = categoryName;
+      // Fetch courses based on selected category
+      this.fetchCoursesByCategory(categoryName);
     },
     checkLoginStatus() {
       const authToken = localStorage.getItem('authToken');
@@ -336,6 +393,12 @@ export default {
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
+    },
+
+    // Handle image loading error
+    handleImageError(event) {
+      // Fallback to default image if image fails to load
+      event.target.src = '/images/default-course.jpg';
     },
     initSwiper() {
       this.swiper = new Swiper('.mySwiper', {
@@ -388,6 +451,7 @@ export default {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

@@ -82,12 +82,12 @@
     .fi-sidebar {
         display: none !important;
     }
-    
+
     /* Adjust main content area for mobile */
     .fi-main {
         margin-left: 0 !important;
     }
-    
+
     /* Adjust topbar for burger menu */
     .fi-topbar {
         padding-left: 1rem !important;
@@ -107,16 +107,16 @@
         position: relative;
         z-index: 60;
     }
-    
+
     /* Adjust Filament components for mobile */
     .fi-header-heading {
         font-size: 1.25rem !important;
     }
-    
+
     .fi-breadcrumbs {
         display: none !important;
     }
-    
+
     /* Mobile-friendly widgets */
     .fi-wi-grid {
         grid-template-columns: 1fr !important;
@@ -136,7 +136,7 @@
         );
         background-size: 200% 100%;
     }
-    
+
     .loading-overlay {
         background: rgba(15, 23, 42, 0.8);
     }
@@ -147,12 +147,12 @@
     .shimmer {
         animation-duration: 2s;
     }
-    
+
     /* Smooth mobile interactions */
     * {
         -webkit-tap-highlight-color: transparent;
     }
-    
+
     /* Better touch targets */
     button, a {
         min-height: 44px;
@@ -188,7 +188,7 @@
         flex: 1;
         justify-content: flex-start;
     }
-    
+
     .fi-topbar-end {
         flex: none;
     }

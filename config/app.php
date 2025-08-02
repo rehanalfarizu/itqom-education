@@ -32,6 +32,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Storage Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure whether to use Cloudinary or local storage for images.
+    | local: Use local storage (default for development)
+    | cloudinary: Use Cloudinary (recommended for production)
+    |
+    */
+
+    'use_cloudinary' => env('USE_CLOUDINARY', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Debug Mode
     |--------------------------------------------------------------------------
     |

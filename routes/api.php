@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\DB;
     // Public Course Routes
     Route::get('/courses', [CourseController::class, 'index']);
     Route::get('/courses/{id}', [CourseController::class, 'show']);
+    Route::get('/courses/category/{category}', [CourseController::class, 'byCategory']);
+    Route::get('/courses/popular', [CourseController::class, 'popular']);
     Route::get('/course-description/{id}', [CourseController::class, 'showByDescription']);
 
 // Public Course Content Routes

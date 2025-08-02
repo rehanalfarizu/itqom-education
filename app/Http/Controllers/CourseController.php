@@ -4,62 +4,178 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\CourseDescription;
+use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CourseController extends Controller
 {
+    protected $cloudinaryService;
+
+    public function __construct(CloudinaryService $cloudinaryService)
+    {
+        $this->cloudinaryService = $cloudinaryService;
+    }
+
     public function index()
     {
-        // Ambil semua course descriptions
-        $courseDescriptions = CourseDescription::all();
+        try {
+            // Ambil dari Course model yang sudah terintegrasi dengan Cloudinary
+            $courses = Course::with('courseDescription')->get();
 
-        // Transform data untuk sesuai dengan format yang diharapkan frontend
-        $transformedCourses = $courseDescriptions->map(function($courseDesc) {
-            return [
-                'id' => $courseDesc->id,
-                'title' => $courseDesc->title,
-                'instructor' => $courseDesc->instructor_name,
-                'video_count' => $courseDesc->video_count . ' video',
-                'duration' => $courseDesc->duration . ' hours',
-                'original' => number_format($courseDesc->price, 0, ',', '.'),
-                'price' => number_format($courseDesc->price_discount ?? $courseDesc->price, 0, ',', '.'),
-                'image' => $courseDesc->image_url ?: '/images/default.jpg',
-                'category' => $courseDesc->tag ?? 'Umum'
-            ];
-        });
+            // Transform data untuk frontend dengan Cloudinary URLs
+            $transformedCourses = $courses->map(function($course) {
+                return [
+                    'id' => $course->id,
+                    'title' => $course->title,
+                    'instructor' => $course->instructor,
+                    'video_count' => $course->video_count . ' video',
+                    'duration' => $course->duration,
+                    'original' => number_format((float)$course->original_price, 0, ',', '.'),
+                    'price' => number_format((float)$course->price, 0, ',', '.'),
+                    'image' => $course->image_url ?: '/images/default.jpg', // Menggunakan accessor Cloudinary
+                    'thumbnail' => $course->thumbnail_url, // Thumbnail yang sudah dioptimasi
+                    'category' => $course->category,
+                    'description' => $course->courseDescription?->title,
+                    'overview' => $course->courseDescription?->overview,
+                ];
+            });
 
-        return response()->json($transformedCourses->values());
+            return response()->json([
+                'success' => true,
+                'data' => $transformedCourses->values()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in CourseController@index: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading courses',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function show($id)
     {
-        // Langsung ambil dari CourseDescription karena itu sumber data utama
-        $courseDescription = CourseDescription::find($id);
+        try {
+            // Ambil course dengan relasi
+            $course = Course::with('courseDescription')->find($id);
 
-        if (!$courseDescription) {
-            return response()->json(['message' => 'Course not found'], 404);
+            if (!$course) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Course not found'
+                ], 404);
+            }
+
+            $courseData = [
+                'id' => $course->id,
+                'title' => $course->title,
+                'instructor' => $course->instructor,
+                'video_count' => $course->video_count,
+                'duration' => $course->duration,
+                'original_price' => $course->original_price,
+                'price' => $course->price,
+                'image' => $course->image_url, // URL Cloudinary yang sudah dioptimasi
+                'thumbnail' => $course->thumbnail_url,
+                'category' => $course->category,
+                'description' => $course->courseDescription?->title,
+                'overview' => $course->courseDescription?->overview,
+                'features' => $course->courseDescription?->features ?? [],
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $courseData
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in CourseController@show: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading course',
+                'error' => $e->getMessage()
+            ], 500);
         }
+    }
 
-        $flattenedData = [
-            'id' => $courseDescription->id,
-            'title' => $courseDescription->title,
-            'tag' => $courseDescription->tag,
-            'overview' => $courseDescription->overview,
-            'image_url' => $courseDescription->image_url,
-            'thumbnail' => $courseDescription->thumbnail,
-            'price' => $courseDescription->price_discount ?? $courseDescription->price,
-            'price_discount' => $courseDescription->price_discount,
-            'instructor_name' => $courseDescription->instructor_name,
-            'instructor_position' => $courseDescription->instructor_position,
-            'instructor_image_url' => $courseDescription->instructor_image_url,
-            'video_count' => $courseDescription->video_count,
-            'duration' => $courseDescription->duration,
-            'features' => $courseDescription->features ?? [],
-        ];
+    /**
+     * Get courses by category with Cloudinary integration
+     */
+    public function byCategory($category)
+    {
+        try {
+            $courses = Course::with('courseDescription')
+                ->byCategory($category)
+                ->get();
 
-        return response()->json($flattenedData);
+            $transformedCourses = $courses->map(function($course) {
+                return [
+                    'id' => $course->id,
+                    'title' => $course->title,
+                    'instructor' => $course->instructor,
+                    'video_count' => $course->video_count,
+                    'duration' => $course->duration,
+                    'price' => $course->price,
+                    'image' => $course->image_url,
+                    'thumbnail' => $course->thumbnail_url,
+                    'category' => $course->category,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $transformedCourses
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in CourseController@byCategory: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading courses by category',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get popular courses with Cloudinary integration
+     */
+    public function popular()
+    {
+        try {
+            $courses = Course::with('courseDescription')
+                ->popular(8)
+                ->get();
+
+            $transformedCourses = $courses->map(function($course) {
+                return [
+                    'id' => $course->id,
+                    'title' => $course->title,
+                    'instructor' => $course->instructor,
+                    'enrollment_count' => $course->user_courses_count,
+                    'image' => $course->image_url,
+                    'thumbnail' => $course->thumbnail_url,
+                    'price' => $course->price,
+                    'category' => $course->category,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $transformedCourses
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in CourseController@popular: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading popular courses',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
