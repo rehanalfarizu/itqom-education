@@ -6,6 +6,36 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\CourseDescription;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $course_id
+ * @property \Illuminate\Support\Carbon|null $enrolled_at
+ * @property numeric $progress_percentage
+ * @property \Illuminate\Support\Carbon|null $last_accessed_at
+ * @property array<array-key, mixed>|null $completed_materials
+ * @property bool $is_completed
+ * @property \Illuminate\Support\Carbon|null $completed_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read CourseDescription $courseDescription
+ * @property-read \App\Models\User $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse whereCompletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse whereCompletedMaterials($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse whereCourseId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse whereEnrolledAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse whereIsCompleted($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse whereLastAccessedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse whereProgressPercentage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserCourse whereUserId($value)
+ * @mixin \Eloquent
+ */
 class UserCourse extends Model
 {
     use HasFactory;

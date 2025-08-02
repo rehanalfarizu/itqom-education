@@ -7,6 +7,29 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\CourseDescription;
 
+/**
+ * @property int $id
+ * @property int $course_description_id
+ * @property string $course_title
+ * @property string $slug
+ * @property array<array-key, mixed> $materials
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read CourseDescription $courseDescription
+ * @property-read int $materials_count
+ * @property-read array $sorted_materials
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CourseContent newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CourseContent newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CourseContent query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CourseContent whereCourseDescriptionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CourseContent whereCourseTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CourseContent whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CourseContent whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CourseContent whereMaterials($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CourseContent whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CourseContent whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class CourseContent extends Model
 {
     use HasFactory;
