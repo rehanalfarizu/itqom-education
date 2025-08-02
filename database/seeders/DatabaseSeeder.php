@@ -30,8 +30,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             CourseDescriptionSeeder::class,
-            CourseSeeder::class,
-
+            // CourseSeeder::class, // Disabled - Course data will be auto-generated
         ]);
     }
 }
