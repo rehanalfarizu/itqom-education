@@ -4,7 +4,6 @@ export default {
     "./resources/**/*.blade.php",
     "./resources/**/*.js",
     "./resources/**/*.vue",
-    "./app/**/*.php",
   ],
   theme: {
     extend: {
@@ -12,14 +11,10 @@ export default {
         primaryDark: '#564AB1',
         primaryLight: '#B0ABDB',
       },
+      fontFamily: {
+        sans: ['Nunito', 'ui-sans-serif', 'system-ui'],
+      },
     },
-    screens: {
-      'sm': '640px',
-      'md': '768px',
-      'lg': '1024px',
-      'xl': '1280px',
-      '2xl': '1536px',
-    }
   },
   plugins: [],
-};
+}
