@@ -9,7 +9,8 @@
         "dev": "vite",
         "build": "vite build",
         "production": "vite build --mode production",
-        "heroku-postbuild": "npm install --force && npm run production"
+        "heroku-postbuild": "npm ci --only=production && npm run production",
+        "build-assets": "npm run production && php artisan storage:link"
     },
     "devDependencies": {
         "@popperjs/core": "^2.11.6",

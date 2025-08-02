@@ -9,22 +9,27 @@ php artisan cache:clear
 php artisan view:clear
 php artisan route:clear
 
+# Build Vite assets untuk production
+echo "2. Building Vite assets for production..."
+npm ci --only=production
+npm run production
+
 # Optimize for production
-echo "2. Optimizing for production..."
+echo "3. Optimizing for production..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
 # Run migrations
-echo "3. Running migrations..."
+echo "4. Running migrations..."
 php artisan migrate --force
 
 # Generate optimized autoloader
-echo "4. Optimizing autoloader..."
+echo "5. Optimizing autoloader..."
 composer dump-autoload --optimize
 
 # Check if course_description table exists and create sample data
-echo "5. Checking database setup..."
+echo "6. Checking database setup..."
 php -r "
 require 'vendor/autoload.php';
 \$app = require_once 'bootstrap/app.php';
@@ -59,5 +64,10 @@ try {
 }
 "
 
+# Clear storage and recreate symlink
+echo "7. Setting up storage..."
+php artisan storage:link
+
 echo "=== DEPLOYMENT COMPLETED ==="
 echo "Application should now be ready for production!"
+echo "Make sure to run 'git add . && git commit -m \"Build assets for production\" && git push heroku main'"

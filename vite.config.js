@@ -24,19 +24,14 @@ export default defineConfig({
     }),
   ],
   build: {
-    manifest: 'manifest.json', // Specify manifest filename explicitly
+    manifest: true,
     outDir: 'public/build',
     emptyOutDir: true,
-    // PENTING: Hapus rollupOptions.input karena conflict dengan laravel plugin
-    // Laravel Vite Plugin sudah handle input configuration
     rollupOptions: {
-      // Hanya gunakan output configuration
       output: {
         manualChunks: {
           vendor: ['vue', 'vue-router'],
-          bootstrap: ['bootstrap'],
-          sweetalert: ['sweetalert2'],
-          swiper: ['swiper']
+          utils: ['axios', 'sweetalert2']
         }
       }
     },
@@ -46,8 +41,7 @@ export default defineConfig({
   },
   server: {
     hmr: {
-    https: true,
-    host: 'localhost',
+      host: 'localhost',
     },
   },
   define: {
