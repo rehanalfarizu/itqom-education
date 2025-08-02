@@ -18,19 +18,34 @@ class CloudinaryService
         // Initialize Cloudinary with manual configuration
         if ($this->shouldUseCloudinary()) {
             try {
+                // Pastikan konfigurasi tersedia
+                $cloudName = config('cloudinary.cloud.cloud_name');
+                $apiKey = config('cloudinary.cloud.api_key');
+                $apiSecret = config('cloudinary.cloud.api_secret');
+
+                if (!$cloudName || !$apiKey || !$apiSecret) {
+                    Log::warning('Cloudinary credentials not available, using fallback');
+                    $this->cloudinary = null;
+                    return;
+                }
+
                 Configuration::instance([
                     'cloud' => [
-                        'cloud_name' => config('cloudinary.cloud.cloud_name'),
-                        'api_key' => config('cloudinary.cloud.api_key'),
-                        'api_secret' => config('cloudinary.cloud.api_secret'),
+                        'cloud_name' => $cloudName,
+                        'api_key' => $apiKey,
+                        'api_secret' => $apiSecret,
                         'url' => ['secure' => true]
                     ]
                 ]);
                 $this->cloudinary = new CloudinaryApi();
+                Log::info('Cloudinary initialized successfully');
             } catch (\Exception $e) {
                 Log::warning('Cloudinary initialization failed: ' . $e->getMessage());
                 $this->cloudinary = null;
             }
+        } else {
+            Log::info('Using local storage (not production environment)');
+            $this->cloudinary = null;
         }
     }
     /**
@@ -66,21 +81,16 @@ class CloudinaryService
             return '/images/default-course.jpg';
         }
 
-        // If it's a local storage path (contains file extension)
-        if (str_contains($publicIdOrPath, '.') || str_starts_with($publicIdOrPath, 'courses/')) {
-            return $this->getLocalImageUrl($publicIdOrPath);
-        }
-
-        // If it's a Cloudinary public_id (no extension)
+        // Jika production dan cloudinary available
         if ($this->shouldUseCloudinary() && $this->cloudinary) {
-            $defaultTransformations = [
-                'quality' => 'auto',
-                'fetch_format' => 'auto'
-            ];
-
-            $transformations = array_merge($defaultTransformations, $transformations);
-
             try {
+                $defaultTransformations = [
+                    'quality' => 'auto',
+                    'fetch_format' => 'auto'
+                ];
+
+                $transformations = array_merge($defaultTransformations, $transformations);
+
                 // Build transformation string
                 $transformString = [];
                 if (isset($transformations['width'])) $transformString[] = 'w_' . $transformations['width'];
@@ -90,6 +100,10 @@ class CloudinaryService
                 if (isset($transformations['fetch_format'])) $transformString[] = 'f_' . $transformations['fetch_format'];
 
                 $cloudName = config('cloudinary.cloud.cloud_name');
+                if (!$cloudName) {
+                    throw new \Exception('Cloudinary cloud name not configured');
+                }
+
                 $baseUrl = "https://res.cloudinary.com/{$cloudName}/image/upload/";
 
                 if (!empty($transformString)) {
@@ -99,12 +113,18 @@ class CloudinaryService
                 return $baseUrl . $publicIdOrPath;
             } catch (\Exception $e) {
                 Log::warning('Cloudinary URL generation failed: ' . $e->getMessage());
-                return $this->getLocalImageUrl($publicIdOrPath);
+                // Fallback to default image
+                return '/images/default-course.jpg';
             }
         }
 
-        // Fallback to local URL
-        return $this->getLocalImageUrl($publicIdOrPath);
+        // If it's a local storage path (contains file extension) and we're not using cloudinary
+        if (str_contains($publicIdOrPath, '.') || str_starts_with($publicIdOrPath, 'courses/')) {
+            return $this->getLocalImageUrl($publicIdOrPath);
+        }
+
+        // Final fallback
+        return '/images/default-course.jpg';
     }
 
     /**
@@ -139,7 +159,7 @@ class CloudinaryService
     private function shouldUseCloudinary(): bool
     {
         // Always use Cloudinary on Heroku (production)
-        if (env('APP_ENV') === 'production' || isset($_ENV['DYNO'])) {
+        if (app()->environment('production') || isset($_ENV['DYNO']) || env('APP_ENV') === 'production') {
             return true;
         }
 
@@ -150,6 +170,11 @@ class CloudinaryService
 
         // Use Cloudinary if FILESYSTEM_DISK is set to cloudinary
         if (env('FILESYSTEM_DISK') === 'cloudinary') {
+            return true;
+        }
+
+        // Check if Cloudinary credentials are available
+        if (config('cloudinary.cloud.cloud_name') && config('cloudinary.cloud.api_key') && config('cloudinary.cloud.api_secret')) {
             return true;
         }
 

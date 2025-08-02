@@ -21,57 +21,55 @@ class CourseController extends Controller
     public function index()
     {
         try {
-            // Strategi Hybrid: Ambil dari Course model yang mereferensi CourseDescription
-            // Jika Course table kosong, fallback ke CourseDescription langsung
-            $courses = Course::with('courseDescription')->get();
+            Log::info('CourseController@index called');
             
-            // Jika Course table kosong, ambil langsung dari CourseDescription
-            if ($courses->isEmpty()) {
-                Log::info('Course table is empty, falling back to CourseDescription');
-                $courseDescriptions = CourseDescription::all();
-                
-                $transformedCourses = $courseDescriptions->map(function($courseDesc) {
-                    return [
-                        'id' => $courseDesc->id,
-                        'title' => $courseDesc->title,
-                        'instructor' => $courseDesc->instructor_name,
-                        'video_count' => $courseDesc->video_count . ' video',
-                        'duration' => $courseDesc->duration,
-                        'original' => number_format((float)$courseDesc->price_discount, 0, ',', '.'),
-                        'price' => number_format((float)$courseDesc->price, 0, ',', '.'),
-                        'image' => $courseDesc->image_url ?: '/images/default.jpg',
-                        'thumbnail' => $courseDesc->thumbnail_url,
-                        'category' => $courseDesc->tag,
-                        'description' => $courseDesc->title,
-                        'overview' => $courseDesc->overview,
-                    ];
-                });
-            } else {
-                // Transform data dari Course model dengan relasi CourseDescription
-                $transformedCourses = $courses->map(function($course) {
-                    $courseDesc = $course->courseDescription;
-                    
-                    return [
-                        'id' => $course->id,
-                        'title' => $course->title ?: ($courseDesc?->title ?? 'No Title'),
-                        'instructor' => $course->instructor ?: ($courseDesc?->instructor_name ?? 'Unknown'),
-                        'video_count' => ($course->video_count ?: ($courseDesc?->video_count ?? 0)) . ' video',
-                        'duration' => $course->duration ?: ($courseDesc?->duration ?? 0),
-                        'original' => number_format((float)($course->original_price ?: ($courseDesc?->price_discount ?? 0)), 0, ',', '.'),
-                        'price' => number_format((float)($course->price ?: ($courseDesc?->price ?? 0)), 0, ',', '.'),
-                        'image' => $course->image_url ?: ($courseDesc?->image_url ?? '/images/default.jpg'),
-                        'thumbnail' => $course->thumbnail_url ?: ($courseDesc?->thumbnail_url ?? '/images/default.jpg'),
-                        'category' => $course->category ?: ($courseDesc?->tag ?? 'General'),
-                        'description' => $courseDesc?->title ?? $course->title,
-                        'overview' => $courseDesc?->overview ?? 'No description available',
-                    ];
-                });
+            // Periksa koneksi database
+            try {
+                DB::connection()->getPdo();
+                Log::info('Database connection successful');
+            } catch (\Exception $e) {
+                Log::error('Database connection failed: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Database connection failed',
+                    'error' => config('app.debug') ? $e->getMessage() : 'Database connection error'
+                ], 500);
             }
+
+            // Ambil data dari CourseDescription
+            $courseDescriptions = CourseDescription::all();
+            Log::info('Found ' . $courseDescriptions->count() . ' course descriptions');
+
+            if ($courseDescriptions->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [],
+                    'message' => 'No courses found',
+                    'source' => 'course_description'
+                ]);
+            }
+
+            $transformedCourses = $courseDescriptions->map(function($courseDesc) {
+                return [
+                    'id' => $courseDesc->id,
+                    'title' => $courseDesc->title,
+                    'instructor' => $courseDesc->instructor_name,
+                    'video_count' => $courseDesc->video_count . ' video',
+                    'duration' => $courseDesc->duration,
+                    'original' => number_format((float)$courseDesc->price_discount, 0, ',', '.'),
+                    'price' => number_format((float)$courseDesc->price, 0, ',', '.'),
+                    'image' => $courseDesc->image_url ?: '/images/default.jpg',
+                    'thumbnail' => $courseDesc->thumbnail_url,
+                    'category' => $courseDesc->tag,
+                    'description' => $courseDesc->title,
+                    'overview' => $courseDesc->overview,
+                ];
+            });
 
             return response()->json([
                 'success' => true,
                 'data' => $transformedCourses->values(),
-                'source' => $courses->isEmpty() ? 'course_description' : 'courses'
+                'source' => 'course_description'
             ]);
 
         } catch (\Exception $e) {

@@ -23,17 +23,30 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->environment('production')) {
-        URL::forceScheme('https');
+            URL::forceScheme('https');
 
-        MidtransConfig::$serverKey = config('midtrans.server_key');
-        MidtransConfig::$isProduction = config('midtrans.is_production');
-        MidtransConfig::$isSanitized = true;
-        MidtransConfig::$is3ds = true;
+            // Configure Midtrans
+            try {
+                MidtransConfig::$serverKey = config('midtrans.server_key');
+                MidtransConfig::$isProduction = config('midtrans.is_production');
+                MidtransConfig::$isSanitized = true;
+                MidtransConfig::$is3ds = true;
+            } catch (\Exception $e) {
+                Log::warning('Midtrans configuration failed: ' . $e->getMessage());
+            }
 
-        DB::listen(function($query) {
-        Log::info($query->sql, $query->bindings);
-    });
-    }
+            // Database query logging (only in production for debugging)
+            if (config('app.debug', false)) {
+                DB::listen(function($query) {
+                    Log::info($query->sql, $query->bindings);
+                });
+            }
+        }
+
+        // Register CloudinaryService as singleton
+        $this->app->singleton(\App\Services\CloudinaryService::class, function ($app) {
+            return new \App\Services\CloudinaryService();
+        });
     }
 
 

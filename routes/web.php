@@ -9,19 +9,30 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 // Halaman utama (Vue mount di sini misalnya)
+// Route untuk test debug model
 Route::get('/test-models', function () {
     try {
+        // Test if CourseDescription model exists and can be instantiated
+        if (!class_exists('\App\Models\CourseDescription')) {
+            return response()->json([
+                'error' => 'CourseDescription class not found',
+                'status' => 'error'
+            ]);
+        }
+
         $courseDescCount = \App\Models\CourseDescription::count();
         $courseCount = \App\Models\Course::count();
-        
+
         return response()->json([
             'course_description_count' => $courseDescCount,
             'course_count' => $courseCount,
+            'cloudinary_service' => class_exists('\App\Services\CloudinaryService') ? 'available' : 'not found',
             'status' => 'success'
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
             'status' => 'error'
         ]);
     }
