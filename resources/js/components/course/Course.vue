@@ -143,7 +143,7 @@
               <router-link
                 v-for="(course, index) in filteredCourses"
                 :key="course.id"
-                :to="`/Course_Description/${course.id}`"
+                :to="`/course_description/${course.id}`"
                 class="group block bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border-2 border-gray-200 hover:border-[#564AB1]/40 transform hover:scale-[1.02]"
                 :style="{ animationDelay: `${index * 50}ms` }"
               >

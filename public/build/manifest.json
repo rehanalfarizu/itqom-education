@@ -16,7 +16,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-D7dAKCNu.js",
+    "file": "assets/app-BaVyZ7fJ.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -25,7 +25,7 @@
       "_utils-Dq7h7Pqt.js"
     ],
     "css": [
-      "assets/app-CspOG5l5.css"
+      "assets/app-C9Q9pkeN.css"
     ]
   }
 }

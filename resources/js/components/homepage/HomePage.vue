@@ -165,7 +165,7 @@
           <router-link
             v-for="course in bestCourses"
             :key="course.id"
-            :to="`/Course_Description/${course.id}`"
+            :to="`/course_description/${course.id}`"
             class="block course-card-link"
           >
             <div class="course-card bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">

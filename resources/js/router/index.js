@@ -17,10 +17,10 @@ import ChangePassword from '../components/auth/ChangePassword.vue';
 
 const routes = [
   { path: '/', name: 'HomePage', component: HomePage },
-  { path: '/Course', name: 'Course', component: Course },
-  { path: '/Course_Description/:id', name: 'CourseDescription', component: Course_Description },
+  { path: '/course', name: 'Course', component: Course },
+  { path: '/course_description/:id', name: 'CourseDescription', component: Course_Description },
   { path: '/learnmore', name: 'LearnMore', component: LearnMore },
-  { path: '/About', name: 'About', component: About },
+  { path: '/about', name: 'About', component: About },
   { path: '/UserTable', name: 'UserTable', component: UserTable },
 
   // Rute User Login dan Register
@@ -31,10 +31,10 @@ const routes = [
   { path: '/admin/login', name: 'AdminLogin', component: AdminLogin },
 
   // --- RUTE YANG MEMBUTUHKAN LOGIN ---
-  { path: '/Profil_Pengguna', name: 'ProfilPengguna', component: Profil_Pengguna, meta: { requiresAuth: true } },
-  { path: '/Dashboard', name: 'Dashboard', component: Dashboard, meta: { requiresAuth: true } },
-  { path: '/Reward', name: 'Reward', component: Reward, meta: { requiresAuth: true } },
-  { path: '/Tanya_Mentor', name: 'Tanya_Mentor', component: TanyaMentor, meta: { requiresAuth: true } },
+  { path: '/profil_pengguna', name: 'ProfilPengguna', component: Profil_Pengguna, meta: { requiresAuth: true } },
+  { path: '/dashboard', name: 'Dashboard', component: Dashboard, meta: { requiresAuth: true } },
+  { path: '/reward', name: 'Reward', component: Reward, meta: { requiresAuth: true } },
+  { path: '/tanya_mentor', name: 'Tanya_Mentor', component: TanyaMentor, meta: { requiresAuth: true } },
   { path: '/course/:courseDescriptionId', name: 'CourseContent', component: course_content, meta: { hideLayout: true, requiresAuth: true } },
   { path: '/change-password', name: 'ChangePassword', component: ChangePassword, meta: { requiresAuth: true } },
 ];
