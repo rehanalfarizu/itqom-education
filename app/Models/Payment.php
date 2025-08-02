@@ -41,7 +41,7 @@ class Payment extends Model
      */
     public function course()
     {
-        return $this->belongsTo(CourseDescription::class, 'course_id');
+        return $this->belongsTo(\App\Models\CourseDescription::class, 'course_id');
     }
 
     /**

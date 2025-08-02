@@ -26,7 +26,7 @@ class CourseContent extends Model
      */
     public function courseDescription(): BelongsTo
     {
-        return $this->belongsTo(CourseDescription::class, 'course_description_id');
+        return $this->belongsTo(\App\Models\CourseDescription::class, 'course_description_id');
     }
 
     /**

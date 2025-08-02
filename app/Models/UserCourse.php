@@ -39,9 +39,18 @@ class UserCourse extends Model
 
     /**
      * Get the course associated with the enrollment.
+     * Using course_description table as primary course data source
+     */
+    public function courseDescription()
+    {
+        return $this->belongsTo(\App\Models\CourseDescription::class, 'course_id');
+    }
+
+    /**
+     * Alias for courseDescription for backward compatibility
      */
     public function course()
     {
-        return $this->belongsTo(CourseDescription::class, 'course_id');
+        return $this->courseDescription();
     }
 }

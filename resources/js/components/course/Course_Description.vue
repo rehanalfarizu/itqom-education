@@ -298,7 +298,8 @@ export default {
 
       try {
         console.log(`Fetching course data for ID: ${this.courseId}`);
-        const response = await axios.get(`https://itqom-platform-aa0ffce6a276.herokuapp.com/api/courses/${this.courseId}`);
+        // Use course-description endpoint to get data directly from CourseDescription table
+        const response = await axios.get(`https://itqom-platform-aa0ffce6a276.herokuapp.com/api/course-description/${this.courseId}`);
         console.log('Course data response:', response.data);
 
         if (response.status !== 200) {
@@ -306,20 +307,20 @@ export default {
         }
 
         this.courseData = {
-          id: response.data.id,
-          title: response.data.title,
-          tag: response.data.tag,
-          overview: response.data.overview,
-          image_url: response.data.image_url,
-          thumbnail: response.data.thumbnail,
-          price: response.data.price,
-          price_discount: response.data.price_discount,
-          instructor_name: response.data.instructor_name,
-          instructor_position: response.data.instructor_position,
-          instructor_image_url: response.data.instructor_image_url,
-          video_count: response.data.video_count,
-          duration: response.data.duration,
-          features: response.data.features || []
+          id: response.data.data.id,
+          title: response.data.data.title,
+          tag: response.data.data.tag,
+          overview: response.data.data.overview,
+          image_url: response.data.data.image_url,
+          thumbnail: response.data.data.thumbnail,
+          price: response.data.data.price,
+          price_discount: response.data.data.price_discount,
+          instructor_name: response.data.data.instructor_name,
+          instructor_position: response.data.data.instructor_position,
+          instructor_image_url: response.data.data.instructor_image_url,
+          video_count: response.data.data.video_count,
+          duration: response.data.data.duration,
+          features: response.data.data.features || []
         };
 
         console.log('Course data loaded:', this.courseData);

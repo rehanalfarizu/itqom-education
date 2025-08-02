@@ -424,4 +424,54 @@ class CourseController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Show course by CourseDescription ID (for frontend)
+     */
+    public function showByDescription($id)
+    {
+        try {
+            // Get course description directly
+            $courseDescription = CourseDescription::find($id);
+
+            if (!$courseDescription) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Course not found'
+                ], 404);
+            }
+
+            // Format response to match frontend expectations
+            $courseData = [
+                'id' => $courseDescription->id,
+                'title' => $courseDescription->title,
+                'tag' => $courseDescription->tag,
+                'overview' => $courseDescription->overview,
+                'image_url' => $courseDescription->image_url,
+                'thumbnail' => $courseDescription->thumbnail,
+                'price' => $courseDescription->price,
+                'price_discount' => $courseDescription->price_discount,
+                'instructor_name' => $courseDescription->instructor_name,
+                'instructor_position' => $courseDescription->instructor_position,
+                'instructor_image_url' => $courseDescription->instructor_image_url,
+                'video_count' => $courseDescription->video_count,
+                'duration' => $courseDescription->duration,
+                'features' => $courseDescription->features ?? [],
+                'created_at' => $courseDescription->created_at,
+                'updated_at' => $courseDescription->updated_at,
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $courseData
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error retrieving course',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

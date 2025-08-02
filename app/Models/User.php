@@ -65,7 +65,7 @@ class User extends Authenticatable
     public function purchasedCourses()
     {
         return $this->hasManyThrough(
-            CourseDescription::class,
+            \App\Models\CourseDescription::class,
             Payment::class,
             'user_profile_id', // Foreign key on payments table
             'id',              // Foreign key on course_description table
