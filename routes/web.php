@@ -9,6 +9,24 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 // Halaman utama (Vue mount di sini misalnya)
+Route::get('/test-models', function () {
+    try {
+        $courseDescCount = \App\Models\CourseDescription::count();
+        $courseCount = \App\Models\Course::count();
+        
+        return response()->json([
+            'course_description_count' => $courseDescCount,
+            'course_count' => $courseCount,
+            'status' => 'success'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'status' => 'error'
+        ]);
+    }
+});
+
 Route::get('/', function () {
     return view('homepage');
 });

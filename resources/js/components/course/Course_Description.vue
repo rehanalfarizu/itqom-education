@@ -345,7 +345,7 @@ async checkUserProfile() {
 
     // TRY MULTIPLE ENDPOINTS FOR USER PROFILE
     let response = null;
-    
+
     // Try /api/user first (Sanctum default)
     try {
       response = await axios.get('/api/user', {
@@ -357,7 +357,7 @@ async checkUserProfile() {
       console.log('User data from /api/user:', response.data);
     } catch (userError) {
       console.warn('Failed to get user from /api/user:', userError.response?.status);
-      
+
       // Fallback to /api/profile
       try {
         response = await axios.get('/api/profile', {
@@ -376,7 +376,7 @@ async checkUserProfile() {
     if (response && response.data) {
       // Handle different response structures
       const userData = response.data.user || response.data;
-      
+
       this.userProfile = {
         id: userData.id,
         name: userData.fullname || userData.name,
@@ -491,7 +491,7 @@ async buyCourse() {
 
   try {
     const token = localStorage.getItem('authToken');
-    
+
     // Prepare payment data with both user_id and user_profile_id for compatibility
     const paymentData = {
       course_id: this.courseData.id,
@@ -548,11 +548,11 @@ async buyCourse() {
       this.pendingPaymentWarning = error.response.data.error;
       this.showError('Anda masih memiliki pembayaran yang sedang diproses untuk kursus ini.');
     } else {
-      const errorMsg = error.response?.data?.error || 
-                      error.response?.data?.message || 
+      const errorMsg = error.response?.data?.error ||
+                      error.response?.data?.message ||
                       error.message;
       this.showError('Terjadi kesalahan saat memproses pembayaran: ' + errorMsg);
-      
+
       // Log debug info for troubleshooting
       console.error('Payment error details:', {
         status: error.response?.status,

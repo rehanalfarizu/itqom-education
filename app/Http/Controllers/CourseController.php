@@ -21,38 +21,66 @@ class CourseController extends Controller
     public function index()
     {
         try {
-            // Ambil dari Course model yang sudah terintegrasi dengan Cloudinary
+            // Strategi Hybrid: Ambil dari Course model yang mereferensi CourseDescription
+            // Jika Course table kosong, fallback ke CourseDescription langsung
             $courses = Course::with('courseDescription')->get();
-
-            // Transform data untuk frontend dengan Cloudinary URLs
-            $transformedCourses = $courses->map(function($course) {
-                return [
-                    'id' => $course->id,
-                    'title' => $course->title,
-                    'instructor' => $course->instructor,
-                    'video_count' => $course->video_count . ' video',
-                    'duration' => $course->duration,
-                    'original' => number_format((float)$course->original_price, 0, ',', '.'),
-                    'price' => number_format((float)$course->price, 0, ',', '.'),
-                    'image' => $course->image_url ?: '/images/default.jpg', // Menggunakan accessor Cloudinary
-                    'thumbnail' => $course->thumbnail_url, // Thumbnail yang sudah dioptimasi
-                    'category' => $course->category,
-                    'description' => $course->courseDescription?->title,
-                    'overview' => $course->courseDescription?->overview,
-                ];
-            });
+            
+            // Jika Course table kosong, ambil langsung dari CourseDescription
+            if ($courses->isEmpty()) {
+                Log::info('Course table is empty, falling back to CourseDescription');
+                $courseDescriptions = CourseDescription::all();
+                
+                $transformedCourses = $courseDescriptions->map(function($courseDesc) {
+                    return [
+                        'id' => $courseDesc->id,
+                        'title' => $courseDesc->title,
+                        'instructor' => $courseDesc->instructor_name,
+                        'video_count' => $courseDesc->video_count . ' video',
+                        'duration' => $courseDesc->duration,
+                        'original' => number_format((float)$courseDesc->price_discount, 0, ',', '.'),
+                        'price' => number_format((float)$courseDesc->price, 0, ',', '.'),
+                        'image' => $courseDesc->image_url ?: '/images/default.jpg',
+                        'thumbnail' => $courseDesc->thumbnail_url,
+                        'category' => $courseDesc->tag,
+                        'description' => $courseDesc->title,
+                        'overview' => $courseDesc->overview,
+                    ];
+                });
+            } else {
+                // Transform data dari Course model dengan relasi CourseDescription
+                $transformedCourses = $courses->map(function($course) {
+                    $courseDesc = $course->courseDescription;
+                    
+                    return [
+                        'id' => $course->id,
+                        'title' => $course->title ?: ($courseDesc?->title ?? 'No Title'),
+                        'instructor' => $course->instructor ?: ($courseDesc?->instructor_name ?? 'Unknown'),
+                        'video_count' => ($course->video_count ?: ($courseDesc?->video_count ?? 0)) . ' video',
+                        'duration' => $course->duration ?: ($courseDesc?->duration ?? 0),
+                        'original' => number_format((float)($course->original_price ?: ($courseDesc?->price_discount ?? 0)), 0, ',', '.'),
+                        'price' => number_format((float)($course->price ?: ($courseDesc?->price ?? 0)), 0, ',', '.'),
+                        'image' => $course->image_url ?: ($courseDesc?->image_url ?? '/images/default.jpg'),
+                        'thumbnail' => $course->thumbnail_url ?: ($courseDesc?->thumbnail_url ?? '/images/default.jpg'),
+                        'category' => $course->category ?: ($courseDesc?->tag ?? 'General'),
+                        'description' => $courseDesc?->title ?? $course->title,
+                        'overview' => $courseDesc?->overview ?? 'No description available',
+                    ];
+                });
+            }
 
             return response()->json([
                 'success' => true,
-                'data' => $transformedCourses->values()
+                'data' => $transformedCourses->values(),
+                'source' => $courses->isEmpty() ? 'course_description' : 'courses'
             ]);
 
         } catch (\Exception $e) {
             Log::error('Error in CourseController@index: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'success' => false,
                 'message' => 'Error loading courses',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
     }
@@ -60,8 +88,8 @@ class CourseController extends Controller
     public function show($id)
     {
         try {
-            // Ambil course dengan relasi
-            $course = Course::with('courseDescription')->find($id);
+            // Ambil course description langsung
+            $course = CourseDescription::find($id);
 
             if (!$course) {
                 return response()->json([
@@ -73,17 +101,17 @@ class CourseController extends Controller
             $courseData = [
                 'id' => $course->id,
                 'title' => $course->title,
-                'instructor' => $course->instructor,
+                'instructor' => $course->instructor_name,
                 'video_count' => $course->video_count,
                 'duration' => $course->duration,
-                'original_price' => $course->original_price,
+                'original_price' => $course->price_discount,
                 'price' => $course->price,
                 'image' => $course->image_url, // URL Cloudinary yang sudah dioptimasi
                 'thumbnail' => $course->thumbnail_url,
-                'category' => $course->category,
-                'description' => $course->courseDescription?->title,
-                'overview' => $course->courseDescription?->overview,
-                'features' => $course->courseDescription?->features ?? [],
+                'category' => $course->tag,
+                'description' => $course->title,
+                'overview' => $course->overview,
+                'features' => $course->features ?? [],
             ];
 
             return response()->json([
@@ -107,21 +135,19 @@ class CourseController extends Controller
     public function byCategory($category)
     {
         try {
-            $courses = Course::with('courseDescription')
-                ->byCategory($category)
-                ->get();
+            $courses = CourseDescription::where('tag', $category)->get();
 
             $transformedCourses = $courses->map(function($course) {
                 return [
                     'id' => $course->id,
                     'title' => $course->title,
-                    'instructor' => $course->instructor,
+                    'instructor' => $course->instructor_name,
                     'video_count' => $course->video_count,
                     'duration' => $course->duration,
                     'price' => $course->price,
                     'image' => $course->image_url,
                     'thumbnail' => $course->thumbnail_url,
-                    'category' => $course->category,
+                    'category' => $course->tag,
                 ];
             });
 
@@ -146,20 +172,21 @@ class CourseController extends Controller
     public function popular()
     {
         try {
-            $courses = Course::with('courseDescription')
-                ->popular(8)
+            // Menggunakan CourseDescription dan sorting by created_at untuk sementara
+            $courses = CourseDescription::orderBy('created_at', 'desc')
+                ->take(8)
                 ->get();
 
             $transformedCourses = $courses->map(function($course) {
                 return [
                     'id' => $course->id,
                     'title' => $course->title,
-                    'instructor' => $course->instructor,
-                    'enrollment_count' => $course->user_courses_count,
+                    'instructor' => $course->instructor_name,
+                    'enrollment_count' => 0, // Dapat dihitung berdasarkan user_courses jika diperlukan
                     'image' => $course->image_url,
                     'thumbnail' => $course->thumbnail_url,
                     'price' => $course->price,
-                    'category' => $course->category,
+                    'category' => $course->tag,
                 ];
             });
 
