@@ -62,9 +62,12 @@ class CourseDescription extends Model
 
     /**
      * Method untuk membuat course entry otomatis setelah course description dibuat
+     * DISABLED SEMENTARA - akan diaktifkan setelah Course model ter-deploy dengan benar
      */
     protected static function booted()
     {
+        // TODO: Re-enable after Course model is properly deployed
+        /*
         static::created(function ($courseDescription) {
             // Auto-create course entry untuk sistem pembelian
             Course::create([
@@ -98,6 +101,7 @@ class CourseDescription extends Model
             // Cascade delete course entries
             $courseDescription->courses()->delete();
         });
+        */
     }
 
     /**
