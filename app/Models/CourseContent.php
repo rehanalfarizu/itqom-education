@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\CourseDescription;
 
 class CourseContent extends Model
 {
@@ -26,7 +27,7 @@ class CourseContent extends Model
      */
     public function courseDescription(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\CourseDescription::class, 'course_description_id');
+        return $this->belongsTo(CourseDescription::class, 'course_description_id');
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\CourseDescription;
 
 class UserCourse extends Model
 {
@@ -43,7 +44,7 @@ class UserCourse extends Model
      */
     public function courseDescription()
     {
-        return $this->belongsTo(\App\Models\CourseDescription::class, 'course_id');
+        return $this->belongsTo(CourseDescription::class, 'course_id');
     }
 
     /**

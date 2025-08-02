@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\CourseDescription;
 
 class Payment extends Model
 {
@@ -36,12 +38,12 @@ class Payment extends Model
         return $this->belongsTo(UserProfile::class, 'user_profile_id');
     }
 
-    /**
-     * Get the course associated with the payment.
+        /**
+     * Get the course description associated with the payment.
      */
-    public function course()
+    public function courseDescription(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\CourseDescription::class, 'course_id');
+        return $this->belongsTo(CourseDescription::class, 'course_description_id');
     }
 
     /**

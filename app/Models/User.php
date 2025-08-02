@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; // Pastikan ini ada
+use App\Models\CourseDescription;
 
 class User extends Authenticatable
 {
@@ -65,7 +66,7 @@ class User extends Authenticatable
     public function purchasedCourses()
     {
         return $this->hasManyThrough(
-            \App\Models\CourseDescription::class,
+            CourseDescription::class,
             Payment::class,
             'user_profile_id', // Foreign key on payments table
             'id',              // Foreign key on course_description table
