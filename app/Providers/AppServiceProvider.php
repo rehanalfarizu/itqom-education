@@ -24,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
     {
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
+            
+            // Disable facade caching for Heroku
+            $this->app['config']->set('app.cache_facades', false);
 
             // Configure Midtrans
             try {
