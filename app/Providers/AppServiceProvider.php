@@ -25,15 +25,8 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
             
-            // Completely disable facade caching for Heroku
+            // Disable facade caching for Heroku
             $this->app['config']->set('app.cache_facades', false);
-            
-            // Override AliasLoader to prevent file writing
-            $aliasLoader = \Illuminate\Foundation\AliasLoader::getInstance();
-            $reflection = new \ReflectionClass($aliasLoader);
-            $cachePath = $reflection->getProperty('cachePath');
-            $cachePath->setAccessible(true);
-            $cachePath->setValue($aliasLoader, null); // Disable cache path completely
 
             // Configure Midtrans
             try {
