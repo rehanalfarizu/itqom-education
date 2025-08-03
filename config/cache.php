@@ -76,6 +76,13 @@ return [
             'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
         ],
 
+        'rate_limiting' => [
+            'driver' => 'database',
+            'table' => env('CACHE_DATABASE_TABLE', 'cache'),
+            'connection' => env('CACHE_DATABASE_CONNECTION'),
+            'lock_connection' => env('CACHE_DATABASE_LOCK_CONNECTION'),
+        ],
+
         'dynamodb' => [
             'driver' => 'dynamodb',
             'key' => env('AWS_ACCESS_KEY_ID'),
