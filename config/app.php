@@ -58,6 +58,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Facade Caching
+    |--------------------------------------------------------------------------
+    |
+    | This configuration option determines whether facades should be cached.
+    | For Heroku deployment, this should be disabled to avoid file permission
+    | issues with the ephemeral file system.
+    |
+    */
+
+    'cache_facades' => env('APP_CACHE_FACADES', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |
