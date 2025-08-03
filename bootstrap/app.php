@@ -15,11 +15,4 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })
-    ->booting(function ($app) {
-        // Disable facade caching in production to avoid file permission issues
-        if ($app->environment('production')) {
-            $app['config']->set('app.cache_facades', false);
-        }
-    })
-    ->create();
+    })->create();
