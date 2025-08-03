@@ -468,7 +468,7 @@ public function checkPaymentStatus(Request $request, $orderId)
             // Get user's profile ID
             $userProfile = $request->user()->profile;
             if (!$userProfile) {
-                Log::error('User has no profile', ['user_id' => $request->user()->id]);
+                Log::error('User has no profile', context: ['user_id' => $request->user()->id]);
                 return response()->json([
                     'success' => false,
                     'error' => 'User profile not found',
@@ -496,13 +496,13 @@ public function checkPaymentStatus(Request $request, $orderId)
             // Check status from Midtrans
             $status = \Midtrans\Transaction::status($orderId);
 
-            Log::info('Payment status from Midtrans', [
+            Log::info(message: 'Payment status from Midtrans', context: [
                 'order_id' => $orderId,
                 'status' => $status->transaction_status,
                 'payment_type' => $status->payment_type ?? null
             ]);
 
-            $mappedStatus = $this->mapPaymentStatus($status->transaction_status);
+            $mappedStatus = $this->mapPaymentStatus(midtransStatus: $status->transaction_status);
 
             // ======= VALIDASI DUPLIKAT SAAT MANUAL CHECK =======
             if ($mappedStatus === 'success') {
@@ -522,9 +522,9 @@ public function checkPaymentStatus(Request $request, $orderId)
                     ]);
 
                     // Update current payment as failed due to duplicate
-                    DB::table('payments')
-                        ->where('order_id', $orderId)
-                        ->update([
+                    DB::table(table: 'payments')
+                        ->where(column: 'order_id', operator: $orderId)
+                        ->update(values: [
                             'status' => 'failed',
                             'transaction_id' => $status->transaction_id ?? null,
                             'payment_type' => $status->payment_type ?? null,
@@ -547,9 +547,9 @@ public function checkPaymentStatus(Request $request, $orderId)
             // ======= END VALIDASI DUPLIKAT =======
 
             // Update status in database
-            $updated = DB::table('payments')
-                ->where('order_id', $orderId)
-                ->update([
+            $updated = DB::table(table: 'payments')
+                ->where(column: 'order_id', operator: $orderId)
+                ->update(values: [
                     'status' => $mappedStatus,
                     'transaction_id' => $status->transaction_id ?? null,
                     'payment_type' => $status->payment_type ?? null,
@@ -566,13 +566,13 @@ public function checkPaymentStatus(Request $request, $orderId)
             // Grant access if payment is successful
             if ($mappedStatus === 'success') {
                 $this->grantCourseAccess(
-                    $payment->user_profile_id,
-                    $payment->course_id
+                    userProfileId: $payment->user_profile_id,
+                    courseId: $payment->course_id
                 );
             }
 
             // Get course title for response
-            $course = DB::table('courses')->where('id', $payment->course_id)->first();
+            $course = DB::table('courses')->where(column: 'id', operator: $payment->course_id)->first();
 
             return response()->json([
                 'success' => $mappedStatus === 'success',
@@ -609,7 +609,7 @@ public function checkPaymentStatus(Request $request, $orderId)
         }
 
     } catch (\Exception $e) {
-        Log::error('Error checking payment status', [
+        Log::error(message: 'Error checking payment status', context: [
             'order_id' => $orderId,
             'error' => $e->getMessage(),
             'trace' => $e->getTraceAsString()
@@ -1007,7 +1007,7 @@ public function paymentError(Request $request)
     {
         try {
             $payment = Payment::where('order_id', $orderId)->first();
-            
+
             if (!$payment) {
                 return response()->json([
                     'success' => false,
@@ -1015,16 +1015,16 @@ public function paymentError(Request $request)
                     'order_id' => $orderId
                 ]);
             }
-            
+
             $oldStatus = $payment->status;
             $payment->status = $status;
             $payment->save();
-            
+
             // Jika status berubah menjadi success, grant course access
             if ($status === 'success' && $oldStatus !== 'success') {
                 $this->grantCourseAccess($payment, $payment->course_id);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Payment status updated successfully',
@@ -1033,7 +1033,7 @@ public function paymentError(Request $request)
                 'new_status' => $status,
                 'payment' => $payment
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
