@@ -93,13 +93,22 @@ class CourseDescriptionResource extends Resource
                                     $set('image_url', 'Uploading...');
 
                                     try {
-                                        // Use hybrid upload when file is uploaded
+                                        // Use a more specific upload method with consistent path structure
                                         $cloudinaryService = app(CloudinaryService::class);
-                                        $imagePath = $cloudinaryService->uploadImageHybrid($state);
+                                        
+                                        // Generate a consistent naming scheme for Cloudinary
+                                        $courseId = $this->record ? $this->record->id : time();
+                                        $timestamp = time();
+                                        $extension = pathinfo($state->getClientOriginalName(), PATHINFO_EXTENSION) ?: 'jpg';
+                                        $publicId = "course_{$courseId}_{$timestamp}";
+                                        
+                                        // Always upload to 'courses' folder
+                                        $imagePath = $cloudinaryService->uploadImageWithPublicId($state, $publicId, 'courses');
                                         $set('image_url', $imagePath);
+                                        
                                         // Clear the temp upload to reduce form size
                                         $set('temp_image_upload', null);
-                                        Log::info('Hybrid upload successful: ' . $imagePath);
+                                        Log::info('Cloudinary upload successful: ' . $imagePath);
                                     } catch (\Exception $e) {
                                         Log::error('Upload failed: ' . $e->getMessage());
                                         $set('image_url', 'Upload failed - please try again');
