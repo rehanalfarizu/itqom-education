@@ -82,7 +82,6 @@ class CourseDescriptionResource extends Resource
                             ->visibility('public')
                             ->acceptedFileTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
                             ->maxSize(5120) // 5MB
-                            ->imageEditor()
                             ->imageResizeMode('cover')
                             ->imageCropAspectRatio('16:9')
                             ->imageResizeTargetWidth('800')
@@ -98,19 +97,20 @@ class CourseDescriptionResource extends Resource
                                     try {
                                         $imagePath = $cloudinaryService->uploadImageHybrid($state);
                                         $set('image_url', $imagePath);
+                                        // Clear the temp upload to reduce form size
+                                        $set('temp_image_upload', null);
                                         Log::info('Hybrid upload successful: ' . $imagePath);
                                     } catch (\Exception $e) {
                                         Log::warning('Hybrid upload failed, using local path: ' . $e->getMessage());
-                                        // Continue with local path if hybrid fails
                                         $set('image_url', 'Upload failed - please try again');
                                     }
                                 }
                             })
                             ->dehydrated(false) // Don't save this field to database
-                            ->loadingIndicatorPosition('center')
-                            ->removeUploadedFileButtonPosition('right')
-                            ->uploadButtonPosition('left')
-                            ->uploadProgressIndicatorPosition('left'),
+                            ->saveUploadedFileUsing(function () {
+                                // Prevent default file saving to reduce processing
+                                return null;
+                            }),
 
                         Hidden::make('image_url'), // Store the URL but don't display it
 
@@ -181,6 +181,10 @@ class CourseDescriptionResource extends Resource
                             ])
                             ->addActionLabel('Add Feature')
                             ->collapsible()
+                            ->collapsed()
+                            ->cloneable()
+                            ->reorderable()
+                            ->maxItems(10)
                             ->columnSpanFull(),
                     ])
                     ->columns(2),

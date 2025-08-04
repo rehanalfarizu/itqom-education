@@ -12,11 +12,12 @@ use Illuminate\Support\Facades\Log;
 class CloudinaryService
 {
     private $cloudinary;
+    private static $initialized = false;
 
     public function __construct()
     {
-        // Initialize Cloudinary with manual configuration
-        if ($this->shouldUseCloudinary()) {
+        // Initialize Cloudinary with manual configuration - only once per request
+        if ($this->shouldUseCloudinary() && !self::$initialized) {
             try {
                 // Pastikan konfigurasi tersedia
                 $cloudName = config('cloudinary.cloud.cloud_name');
@@ -38,13 +39,21 @@ class CloudinaryService
                     ]
                 ]);
                 $this->cloudinary = new CloudinaryApi();
+                self::$initialized = true;
                 Log::info('Cloudinary initialized successfully');
             } catch (\Exception $e) {
                 Log::warning('Cloudinary initialization failed: ' . $e->getMessage());
                 $this->cloudinary = null;
             }
+        } else if ($this->shouldUseCloudinary() && self::$initialized) {
+            // Reuse existing configuration
+            $this->cloudinary = new CloudinaryApi();
         } else {
-            Log::info('Using local storage (not production environment)');
+            // Only log once per request
+            if (!self::$initialized) {
+                Log::info('Using local storage (not production environment)');
+                self::$initialized = true;
+            }
             $this->cloudinary = null;
         }
     }
