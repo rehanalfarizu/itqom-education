@@ -107,7 +107,10 @@ class CourseDescriptionResource extends Resource
                                 }
                             })
                             ->dehydrated(false) // Don't save this field to database
-                            ->loadingIndicatorPosition('center'),
+                            ->loadingIndicatorPosition('center')
+                            ->removeUploadedFileButtonPosition('right')
+                            ->uploadButtonPosition('left')
+                            ->uploadProgressIndicatorPosition('left'),
 
                         Hidden::make('image_url'), // Store the URL but don't display it
 
@@ -129,10 +132,9 @@ class CourseDescriptionResource extends Resource
                                 if ($state) {
                                     $cloudinaryService = app(CloudinaryService::class);
                                     try {
-                                        $hybridResult = $cloudinaryService->uploadImageHybrid($state);
-                                        if ($hybridResult['success']) {
-                                            $set('instructor_image_url', $hybridResult['path']);
-                                        }
+                                        $imagePath = $cloudinaryService->uploadImageHybrid($state);
+                                        $set('instructor_image_url', $imagePath);
+                                        Log::info('Instructor hybrid upload successful: ' . $imagePath);
                                     } catch (\Exception $e) {
                                         Log::warning('Instructor image hybrid upload failed: ' . $e->getMessage());
                                     }

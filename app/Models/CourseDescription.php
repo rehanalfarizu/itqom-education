@@ -128,7 +128,7 @@ class CourseDescription extends Model
                 ]);
 
                 // Only log in debug mode to reduce overhead
-                if (config('app.debug')) {
+                if (config('app.debug', false)) {
                     \Illuminate\Support\Facades\Log::info('Cloudinary URL generated', [
                         'original' => $value,
                         'optimized' => $optimizedUrl
