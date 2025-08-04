@@ -148,14 +148,15 @@ try {
 
     // Test with invalid inputs
     $testCases = [
-        '' => 'Empty string',
-        null => 'Null value',
-        'nonexistent/file.jpg' => 'Nonexistent file',
-        'invalid-chars/file<>.jpg' => 'Invalid characters'
+        'empty_string' => ['', 'Empty string'],
+        'null_value' => [null, 'Null value'],
+        'nonexistent_file' => ['nonexistent/file.jpg', 'Nonexistent file'],
+        'invalid_chars' => ['invalid-chars/file<>.jpg', 'Invalid characters']
     ];
 
     $errorHandlingPass = true;
-    foreach ($testCases as $input => $description) {
+    foreach ($testCases as $testName => $testData) {
+        list($input, $description) = $testData;
         try {
             $url = $cloudinaryService->getOptimizedUrl($input);
             echo "   ✅ $description: Handled gracefully (returned: $url)\n";

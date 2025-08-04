@@ -91,14 +91,15 @@ $testResults['url_generation'] = $urlPass ? 'PASS' : 'FAIL';
 // Test 5: Transformation String Building
 echo "\n🧪 Test 5: Transformation Handling\n";
 $transformationTests = [
-    [] => 'Empty transformations',
-    ['width' => 800] => 'Width only',
-    ['width' => 800, 'height' => 600, 'crop' => 'fill'] => 'Multiple transformations',
-    ['quality' => 'auto', 'fetch_format' => 'auto'] => 'Quality and format'
+    'empty' => [[], 'Empty transformations'],
+    'width_only' => [['width' => 800], 'Width only'],
+    'multiple' => [['width' => 800, 'height' => 600, 'crop' => 'fill'], 'Multiple transformations'],
+    'quality' => [['quality' => 'auto', 'fetch_format' => 'auto'], 'Quality and format']
 ];
 
 $transformPass = true;
-foreach ($transformationTests as $transforms => $description) {
+foreach ($transformationTests as $testName => $testData) {
+    list($transforms, $description) = $testData;
     try {
         $url = $service->getOptimizedUrl('courses/test.jpg', (array)$transforms);
         
