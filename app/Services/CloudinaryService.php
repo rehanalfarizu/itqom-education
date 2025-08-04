@@ -162,17 +162,22 @@ class CloudinaryService
 
         // Jika sudah berupa URL lengkap, return as is (tapi cek dulu duplikasi)
         if (filter_var($publicIdOrPath, FILTER_VALIDATE_URL)) {
-            // Cek apakah ada duplikasi transformasi
-            if (str_contains($publicIdOrPath, 'w_800,h_450,c_fill,q_auto,f_auto/w_800,h_450,c_fill,q_auto,f_auto/')) {
-                // Hapus duplikasi transformasi
-                $cleanUrl = str_replace(
-                    'w_800,h_450,c_fill,q_auto,f_auto/w_800,h_450,c_fill,q_auto,f_auto/',
-                    'w_800,h_450,c_fill,q_auto,f_auto/',
-                    $publicIdOrPath
-                );
-                return $cleanUrl;
+            $cleanUrl = $publicIdOrPath;
+            
+            // Hapus berbagai jenis duplikasi transformasi
+            $duplicatePatterns = [
+                'w_800,h_450,c_fill,q_auto,f_auto/w_800,h_450,c_fill,q_auto,f_auto/',
+                'q_auto,f_auto/q_auto,f_auto/',
+                'w_800,h_450,c_fill/w_800,h_450,c_fill/',
+                // Tambahan pattern lain yang mungkin terduplikasi
+            ];
+            
+            foreach ($duplicatePatterns as $pattern) {
+                $replacement = str_replace($pattern . $pattern, $pattern, $pattern);
+                $cleanUrl = str_replace($pattern, $replacement, $cleanUrl);
             }
-            return $publicIdOrPath;
+            
+            return $cleanUrl;
         }
 
         // Jika production dan cloudinary available
