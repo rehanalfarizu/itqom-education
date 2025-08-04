@@ -154,9 +154,9 @@ class CloudinaryService
     /**
      * Get optimized URL for image
      */
-    public function getOptimizedUrl(string $publicIdOrPath, array $transformations = []): string
+    public function getOptimizedUrl(?string $publicIdOrPath, array $transformations = []): string
     {
-        if (empty($publicIdOrPath)) {
+        if (empty($publicIdOrPath) || is_null($publicIdOrPath)) {
             return '/images/default-course.jpg';
         }
 
@@ -259,8 +259,12 @@ class CloudinaryService
     /**
      * Delete image from appropriate storage
      */
-    public function deleteImage(string $publicIdOrPath): bool
+    public function deleteImage(?string $publicIdOrPath): bool
     {
+        if (empty($publicIdOrPath) || is_null($publicIdOrPath)) {
+            return false;
+        }
+
         if ($this->shouldUseCloudinary() && !str_contains($publicIdOrPath, '.')) {
             // Delete from Cloudinary
             try {
@@ -392,9 +396,9 @@ class CloudinaryService
     /**
      * Get local image URL
      */
-    public function getLocalImageUrl(string $path): string
+    public function getLocalImageUrl(?string $path): string
     {
-        if (empty($path)) {
+        if (empty($path) || is_null($path)) {
             return '/images/default-course.jpg';
         }
 
@@ -478,8 +482,12 @@ class CloudinaryService
     /**
      * Debug method to check if file exists in Cloudinary
      */
-    public function checkFileExists(string $publicId): bool
+    public function checkFileExists(?string $publicId): bool
     {
+        if (empty($publicId) || is_null($publicId)) {
+            return false;
+        }
+
         if (!$this->shouldUseCloudinary() || !$this->cloudinary) {
             return false;
         }
@@ -522,7 +530,7 @@ class CloudinaryService
     /**
      * Check if image exists in both storages
      */
-    public function checkImageAvailability(string $publicIdOrPath): array
+    public function checkImageAvailability(?string $publicIdOrPath): array
     {
         $result = [
             'local' => false,
@@ -530,6 +538,10 @@ class CloudinaryService
             'primary' => null,
             'fallback' => null
         ];
+
+        if (empty($publicIdOrPath) || is_null($publicIdOrPath)) {
+            return $result;
+        }
 
         // Check local storage
         if (str_contains($publicIdOrPath, '.') || str_starts_with($publicIdOrPath, 'courses/')) {
@@ -561,9 +573,9 @@ class CloudinaryService
     /**
      * Get best available image URL with fallback
      */
-    public function getBestImageUrl(string $publicIdOrPath, array $transformations = []): string
+    public function getBestImageUrl(?string $publicIdOrPath, array $transformations = []): string
     {
-        if (empty($publicIdOrPath)) {
+        if (empty($publicIdOrPath) || is_null($publicIdOrPath)) {
             return '/images/default-course.jpg';
         }
 
