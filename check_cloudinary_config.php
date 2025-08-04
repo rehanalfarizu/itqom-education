@@ -18,8 +18,8 @@ echo "API Secret: " . ($apiSecret ? 'SET' : 'MISSING') . "\n";
 
 // Check config values
 echo "\nConfig values:\n";
-echo "Cloud Name: " . config('cloudinary.cloud.cloud_name', 'NOT SET') . "\n";
-echo "API Key: " . config('cloudinary.cloud.api_key', 'NOT SET') . "\n";
+echo "Cloud Name: " . (config('cloudinary.cloud.cloud_name') ?: 'NOT SET') . "\n";
+echo "API Key: " . (config('cloudinary.cloud.api_key') ?: 'NOT SET') . "\n";
 echo "API Secret: " . (config('cloudinary.cloud.api_secret') ? 'SET' : 'NOT SET') . "\n";
 
 // Check if Cloudinary package is installed
