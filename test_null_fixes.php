@@ -45,12 +45,12 @@ echo "\n";
 
 // Test 4: Check database courses
 echo "\n=== COURSE TESTS ===\n";
-$courses = CourseDescription::whereNotNull('image')->limit(3)->get();
+$courses = CourseDescription::whereNotNull('image_url')->limit(3)->get();
 
 foreach ($courses as $index => $course) {
     $courseNum = $index + 1;
     echo "Course {$courseNum} (ID: {$course->id}):\n";
-    echo "  - DB Value: '{$course->image}'\n";
+    echo "  - DB Value: '{$course->image_url}'\n";
     
     try {
         $imageUrl = $course->image_url;
