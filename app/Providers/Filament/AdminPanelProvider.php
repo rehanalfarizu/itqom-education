@@ -57,6 +57,11 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 \Illuminate\Auth\Middleware\Authenticate::class,
             ])
-            ->authGuard('web');
+            ->authGuard('web')
+            // Tambahkan loading overlay hooks
+            ->renderHook('panels::body.end', fn() => view('admin.components.loading-overlay'))
+            ->renderHook('panels::head.end', fn() => view('admin.components.loading-styles'))
+            // Tambahkan mobile burger menu
+            ->renderHook('panels::topbar.start', fn() => view('components.mobile-burger-menu'));
     }
 }

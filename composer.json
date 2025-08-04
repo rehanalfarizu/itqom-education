@@ -43,22 +43,16 @@
     "scripts": {
     "post-autoload-dump": [
         "@php -r \"file_exists('bootstrap/cache') || mkdir('bootstrap/cache', 0755, true);\"",
-        "@php -r \"file_exists('storage/framework/cache') || mkdir('storage/framework/cache', 0755, true);\"",
-        "@php -r \"file_exists('storage/framework/cache/data') || mkdir('storage/framework/cache/data', 0755, true);\"",
         "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
         "@php artisan package:discover --ansi || true",
         "@php artisan filament:upgrade || true"
     ],
     "post-update-cmd": [
         "@php -r \"file_exists('bootstrap/cache') || mkdir('bootstrap/cache', 0755, true);\"",
-        "@php -r \"file_exists('storage/framework/cache') || mkdir('storage/framework/cache', 0755, true);\"",
-        "@php -r \"file_exists('storage/framework/cache/data') || mkdir('storage/framework/cache/data', 0755, true);\"",
         "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
     ],
     "post-install-cmd": [
         "@php -r \"file_exists('bootstrap/cache') || mkdir('bootstrap/cache', 0755, true);\"",
-        "@php -r \"file_exists('storage/framework/cache') || mkdir('storage/framework/cache', 0755, true);\"",
-        "@php -r \"file_exists('storage/framework/cache/data') || mkdir('storage/framework/cache/data', 0755, true);\"",
         "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
         "@php artisan package:discover --ansi || true"
     ],
