@@ -51,7 +51,7 @@ class CloudinaryService
     /**
      * Upload image with environment-based storage
      */
-    public function uploadImage(UploadedFile $file, string $folder = null): string
+    public function uploadImage(UploadedFile $file, ?string $folder = null): string
     {
         if ($this->shouldUseCloudinary()) {
             return $this->uploadToCloudinary($file, $folder);
@@ -63,7 +63,7 @@ class CloudinaryService
     /**
      * Upload image with public ID (for Cloudinary) or custom name (for local)
      */
-    public function uploadImageWithPublicId(UploadedFile $file, string $publicId, string $folder = null): string
+    public function uploadImageWithPublicId(UploadedFile $file, string $publicId, ?string $folder = null): string
     {
         if ($this->shouldUseCloudinary()) {
             return $this->uploadToCloudinaryWithPublicId($file, $publicId, $folder);
@@ -185,7 +185,7 @@ class CloudinaryService
     /**
      * Upload to Cloudinary
      */
-    private function uploadToCloudinary(UploadedFile $file, string $folder = null): string
+    private function uploadToCloudinary(UploadedFile $file, ?string $folder = null): string
     {
         $folder = $folder ?? config('cloudinary.folder', 'itqom-platform');
 
@@ -205,7 +205,7 @@ class CloudinaryService
     /**
      * Upload to Cloudinary with specific public ID
      */
-    private function uploadToCloudinaryWithPublicId(UploadedFile $file, string $publicId, string $folder = null): string
+    private function uploadToCloudinaryWithPublicId(UploadedFile $file, string $publicId, ?string $folder = null): string
     {
         $folder = $folder ?? config('cloudinary.folder', 'itqom-platform');
 
@@ -227,8 +227,11 @@ class CloudinaryService
     /**
      * Store file locally and return path
      */
-    public function storeImageLocally(UploadedFile $file, string $folder = 'courses', string $customName = null): string
+    public function storeImageLocally(UploadedFile $file, ?string $folder = 'courses', ?string $customName = null): string
     {
+        // Ensure folder has a default value
+        $folder = $folder ?? 'courses';
+        
         if ($customName) {
             $filename = $customName . '.' . $file->getClientOriginalExtension();
         } else {
@@ -261,8 +264,11 @@ class CloudinaryService
     /**
      * Upload image with hybrid approach (primary + backup)
      */
-    public function uploadImageHybrid(UploadedFile $file, string $folder = null): string
+    public function uploadImageHybrid(UploadedFile $file, ?string $folder = null): string
     {
+        // Set default folder if null
+        $folder = $folder ?? 'courses';
+        
         $primaryPath = null;
         $backupPath = null;
 
@@ -302,7 +308,7 @@ class CloudinaryService
             if ($this->shouldUseCloudinary() && !$primaryPath) {
                 // Try local as fallback
                 try {
-                    return $this->storeImageLocally($file, $folder);
+                    return $this->storeImageLocally($file, $folder ?? 'courses');
                 } catch (\Exception $fallbackError) {
                     throw new \Exception('All storage methods failed');
                 }
