@@ -78,48 +78,36 @@ class CourseDescriptionResource extends Resource
                             ->label('Course Image')
                             ->image()
                             ->disk('public')
-                            ->directory('course-images')
+                            ->directory('temp-uploads')
                             ->visibility('public')
                             ->acceptedFileTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
-                            ->maxSize(5120) // 5MB
+                            ->maxSize(3072) // Reduced to 3MB for faster upload
                             ->imageResizeMode('cover')
                             ->imageCropAspectRatio('16:9')
                             ->imageResizeTargetWidth('800')
                             ->imageResizeTargetHeight('450')
-                            ->helperText('Upload course image with 16:9 aspect ratio. Max: 5MB')
+                            ->helperText('Upload course image with 16:9 aspect ratio. Max: 3MB')
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if ($state) {
-                                    // Show immediate feedback
-                                    $set('image_url', 'Uploading...');
-
                                     try {
-                                        // ALWAYS upload to courses folder with proper naming
                                         $cloudinaryService = app(CloudinaryService::class);
 
-                                        // Generate a proper filename for courses
-                                        $originalName = $state->getClientOriginalName();
-                                        $extension = $state->getClientOriginalExtension();
-                                        $timestamp = time();
-                                        $randomString = bin2hex(random_bytes(8));
-                                        $fileName = "course_{$timestamp}_{$randomString}";
-
-                                        // Upload directly to courses folder with our custom public_id
-                                        $imagePath = $cloudinaryService->uploadImageWithPublicId($state, $fileName, 'courses');
+                                        // Use simple upload to livewire-tmp (default Filament behavior)
+                                        $imagePath = $cloudinaryService->uploadImage($state, 'livewire-tmp');
                                         $set('image_url', $imagePath);
 
-                                        // Clear the temp upload to reduce form size
+                                        // Clear temp upload immediately for better performance
                                         $set('temp_image_upload', null);
-                                        Log::info('Course image uploaded successfully to: courses/' . $fileName);
+                                        Log::info('Course image uploaded to livewire-tmp: ' . $imagePath);
                                     } catch (\Exception $e) {
                                         Log::error('Course image upload failed: ' . $e->getMessage());
                                         $set('image_url', 'Upload failed - please try again');
                                     }
                                 }
                             })
-                            ->dehydrated(false) // Don't save this field to database
+                            ->dehydrated(false)
                             ->saveUploadedFileUsing(function () {
-                                // Prevent default file saving to reduce processing
-                                return null;
+                                return null; // Fast return
                             }),
 
                         Hidden::make('image_url'), // Store the URL but don't display it
@@ -128,30 +116,25 @@ class CourseDescriptionResource extends Resource
                             ->label('Instructor Photo')
                             ->image()
                             ->disk('public')
-                            ->directory('instructor-images')
+                            ->directory('temp-uploads')
                             ->visibility('public')
                             ->acceptedFileTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/webp'])
-                            ->maxSize(2048) // 2MB
+                            ->maxSize(1024) // Reduced to 1MB for faster upload
                             ->imageEditor()
                             ->imageResizeMode('cover')
                             ->imageCropAspectRatio('1:1')
                             ->imageResizeTargetWidth('300')
                             ->imageResizeTargetHeight('300')
-                            ->helperText('Upload instructor photo with 1:1 aspect ratio. Max: 2MB')
+                            ->helperText('Upload instructor photo with 1:1 aspect ratio. Max: 1MB')
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if ($state) {
                                     try {
                                         $cloudinaryService = app(CloudinaryService::class);
 
-                                        // Generate proper filename for instructor images
-                                        $timestamp = time();
-                                        $randomString = bin2hex(random_bytes(8));
-                                        $fileName = "instructor_{$timestamp}_{$randomString}";
-
-                                        // Upload to instructors folder
-                                        $imagePath = $cloudinaryService->uploadImageWithPublicId($state, $fileName, 'instructors');
+                                        // Upload to livewire-tmp for consistency
+                                        $imagePath = $cloudinaryService->uploadImage($state, 'livewire-tmp');
                                         $set('instructor_image_url', $imagePath);
-                                        Log::info('Instructor image uploaded successfully to: instructors/' . $fileName);
+                                        Log::info('Instructor image uploaded to livewire-tmp: ' . $imagePath);
                                     } catch (\Exception $e) {
                                         Log::error('Instructor image upload failed: ' . $e->getMessage());
                                         $set('instructor_image_url', 'Upload failed - please try again');

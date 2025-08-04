@@ -51,7 +51,7 @@ foreach ($courses as $index => $course) {
     $courseNum = $index + 1;
     echo "Course {$courseNum} (ID: {$course->id}):\n";
     echo "  - DB Value: '{$course->image_url}'\n";
-    
+
     try {
         $imageUrl = $course->image_url;
         echo "  - Generated URL: '{$imageUrl}'\n";

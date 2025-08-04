@@ -38,14 +38,14 @@ try {
     if ($course) {
         $imageUrl = $course->image_url;
         echo "   ✅ Image URL accessor works: $imageUrl\n";
-        
+
         // Check if it's using CloudinaryService
         if (strpos($imageUrl, 'cloudinary.com') !== false) {
             echo "   ✅ Using Cloudinary URL\n";
         } else {
             echo "   ⚠️ Not using Cloudinary URL (might be local/fallback)\n";
         }
-        
+
         $testResults['model_accessors'] = 'PASS';
     } else {
         echo "   ⚠️ No courses found to test\n";
@@ -61,12 +61,12 @@ echo "\n🧪 Test 3: Image URL Data Consistency\n";
 try {
     $courses = CourseDescription::take(5)->get();
     $consistencyPass = true;
-    
+
     foreach ($courses as $course) {
         $imageUrl = $course->image_url;
         echo "   Course '{$course->title}':\n";
         echo "     Image URL: $imageUrl\n";
-        
+
         // Check for common issues
         if (strpos($imageUrl, 'Upload failed') !== false) {
             echo "     ⚠️ Contains upload error message\n";
@@ -81,7 +81,7 @@ try {
         }
         echo "\n";
     }
-    
+
     $testResults['data_consistency'] = $consistencyPass ? 'PASS' : 'FAIL';
 } catch (\Exception $e) {
     echo "   ❌ FAIL: " . $e->getMessage() . "\n";
@@ -106,7 +106,7 @@ try {
         'features' => json_encode(['test_feature'])
     ]);
     echo "   ✅ CREATE: Course created with ID {$testCourse->id}\n";
-    
+
     // Read
     $readCourse = CourseDescription::find($testCourse->id);
     if ($readCourse && $readCourse->title === 'Unit Test Course') {
@@ -114,7 +114,7 @@ try {
     } else {
         echo "   ❌ READ: Course data not found or incorrect\n";
     }
-    
+
     // Update
     $testCourse->update(['title' => 'Updated Unit Test Course']);
     $updatedCourse = CourseDescription::find($testCourse->id);
@@ -123,7 +123,7 @@ try {
     } else {
         echo "   ❌ UPDATE: Course update failed\n";
     }
-    
+
     // Delete
     $testCourse->delete();
     $deletedCourse = CourseDescription::find($testCourse->id);
@@ -132,7 +132,7 @@ try {
     } else {
         echo "   ❌ DELETE: Course deletion failed\n";
     }
-    
+
     $testResults['crud_operations'] = 'PASS';
 } catch (\Exception $e) {
     echo "   ❌ FAIL: " . $e->getMessage() . "\n";
@@ -148,12 +148,12 @@ try {
         'courses/test2.png',
         'livewire-tmp/old.jpg'
     ];
-    
+
     $generationPass = true;
     foreach ($testPaths as $path) {
         $url1 = $service->getOptimizedUrl($path);
         $url2 = $service->getOptimizedUrl($path);
-        
+
         if ($url1 === $url2) {
             echo "   ✅ '$path': Consistent URL generation\n";
         } else {
@@ -163,7 +163,7 @@ try {
             $generationPass = false;
         }
     }
-    
+
     $testResults['url_consistency'] = $generationPass ? 'PASS' : 'FAIL';
 } catch (\Exception $e) {
     echo "   ❌ FAIL: " . $e->getMessage() . "\n";

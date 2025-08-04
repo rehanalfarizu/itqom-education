@@ -35,7 +35,7 @@ try {
 echo "\n🧪 Test 2: Required Methods Exist\n";
 $requiredMethods = [
     'uploadImage',
-    'uploadImageWithPublicId', 
+    'uploadImageWithPublicId',
     'getOptimizedUrl',
     'deleteImage',
     'isCloudinaryEnabled',
@@ -57,7 +57,7 @@ $testResults['methods'] = $methodsPass ? 'PASS' : 'FAIL';
 echo "\n🧪 Test 3: Cloudinary Configuration\n";
 try {
     $isEnabled = $service->isCloudinaryEnabled();
-    
+
     echo "   ✅ Cloudinary enabled: " . ($isEnabled ? 'YES' : 'NO') . "\n";
     echo "   ✅ Storage type: " . ($isEnabled ? 'cloudinary' : 'local') . "\n";
     $testResults['configuration'] = 'PASS';
@@ -80,7 +80,7 @@ $urlPass = true;
 foreach ($urlTests as $input => $description) {
     try {
         $url = $service->getOptimizedUrl($input);
-        
+
         if (empty($input) && $url === '/images/default-course.jpg') {
             echo "   ✅ Empty path: Default image returned\n";
         } elseif (!empty($input) && strpos($url, 'cloudinary.com') !== false) {
@@ -111,7 +111,7 @@ foreach ($transformationTests as $testName => $testData) {
     list($transforms, $description) = $testData;
     try {
         $url = $service->getOptimizedUrl('courses/test.jpg', (array)$transforms);
-        
+
         if (strpos($url, 'cloudinary.com') !== false) {
             echo "   ✅ $description: URL generated with transformations\n";
         } else {
@@ -129,7 +129,7 @@ echo "\n🧪 Test 6: List Files\n";
 try {
     $files = $service->listFiles('courses');
     echo "   ✅ List files executed (found " . count($files) . " files)\n";
-    
+
     if (count($files) > 0) {
         $sampleFile = $files[0];
         if (isset($sampleFile['public_id'])) {

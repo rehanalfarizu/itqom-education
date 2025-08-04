@@ -5,7 +5,7 @@ echo "Running comprehensive tests...\n\n";
 
 $testFiles = [
     'unit_test_cloudinary.php' => 'CloudinaryService Unit Tests',
-    'unit_test_database.php' => 'Database Integration Tests', 
+    'unit_test_database.php' => 'Database Integration Tests',
     'unit_test_frontend.php' => 'Frontend Integration Tests',
     'unit_test_complete.php' => 'Complete Integration Tests'
 ];
@@ -17,25 +17,25 @@ foreach ($testFiles as $file => $description) {
     echo str_repeat("=", 80) . "\n";
     echo "🧪 RUNNING: $description\n";
     echo str_repeat("=", 80) . "\n";
-    
+
     $testStartTime = microtime(true);
-    
+
     if (file_exists($file)) {
         ob_start();
         include $file;
         $output = ob_get_clean();
-        
+
         $testEndTime = microtime(true);
         $testDuration = round(($testEndTime - $testStartTime), 2);
-        
+
         echo $output;
         echo "\n⏱️ Test completed in {$testDuration} seconds\n\n";
-        
+
         // Analyze output for pass/fail
         $passCount = substr_count($output, '✅');
         $failCount = substr_count($output, '❌');
         $warnCount = substr_count($output, '⚠️');
-        
+
         $allTestResults[$description] = [
             'duration' => $testDuration,
             'pass' => $passCount,
@@ -69,7 +69,7 @@ foreach ($allTestResults as $testName => $results) {
     $totalPass += $results['pass'];
     $totalFail += $results['fail'];
     $totalWarn += $results['warn'];
-    
+
     echo "🧪 $testName:\n";
     echo "   ✅ Passed: {$results['pass']}\n";
     echo "   ❌ Failed: {$results['fail']}\n";
