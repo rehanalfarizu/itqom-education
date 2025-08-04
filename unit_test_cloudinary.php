@@ -1,8 +1,17 @@
 <?php
 
 require __DIR__.'/vendor/autoload.php';
+
+// Bootstrap Laravel application
 $app = require_once __DIR__.'/bootstrap/app.php';
-$app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
+
+// Only call make if $app is an object
+if (is_object($app) && method_exists($app, 'make')) {
+    $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
+} else {
+    // Alternative bootstrap for different Laravel versions
+    require_once __DIR__.'/bootstrap/app.php';
+}
 
 use App\Services\CloudinaryService;
 use App\Models\CourseDescription;
