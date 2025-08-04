@@ -37,7 +37,7 @@ class CloudinaryConfigurationServiceProvider extends ServiceProvider
     private function shouldConfigureCloudinary(): bool
     {
         // Configure on production or when explicitly enabled
-        return app()->environment('production') || 
+        return app()->environment('production') ||
                env('FILESYSTEM_DISK') === 'cloudinary' ||
                config('app.use_cloudinary', false);
     }
@@ -48,14 +48,14 @@ class CloudinaryConfigurationServiceProvider extends ServiceProvider
     private function configureCloudinary(): void
     {
         // Try multiple configuration sources
-        $cloudName = config('cloudinary.cloud.cloud_name') ?: 
-                   config('filesystems.disks.cloudinary.cloud_name') ?: 
+        $cloudName = config('cloudinary.cloud.cloud_name') ?:
+                   config('filesystems.disks.cloudinary.cloud_name') ?:
                    env('CLOUDINARY_CLOUD_NAME');
-        $apiKey = config('cloudinary.cloud.api_key') ?: 
-                config('filesystems.disks.cloudinary.api_key') ?: 
+        $apiKey = config('cloudinary.cloud.api_key') ?:
+                config('filesystems.disks.cloudinary.api_key') ?:
                 env('CLOUDINARY_API_KEY');
-        $apiSecret = config('cloudinary.cloud.api_secret') ?: 
-                   config('filesystems.disks.cloudinary.api_secret') ?: 
+        $apiSecret = config('cloudinary.cloud.api_secret') ?:
+                   config('filesystems.disks.cloudinary.api_secret') ?:
                    env('CLOUDINARY_API_SECRET');
 
         // Fallback to parsing CLOUDINARY_URL

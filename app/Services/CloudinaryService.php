@@ -22,14 +22,14 @@ class CloudinaryService
         if (!self::$initialized && (app()->environment('production') || env('FILESYSTEM_DISK') === 'cloudinary')) {
             try {
                 // Get credentials with multiple fallbacks
-                $cloudName = config('cloudinary.cloud.cloud_name') ?: 
-                           config('filesystems.disks.cloudinary.cloud_name') ?: 
+                $cloudName = config('cloudinary.cloud.cloud_name') ?:
+                           config('filesystems.disks.cloudinary.cloud_name') ?:
                            env('CLOUDINARY_CLOUD_NAME');
-                $apiKey = config('cloudinary.cloud.api_key') ?: 
-                        config('filesystems.disks.cloudinary.api_key') ?: 
+                $apiKey = config('cloudinary.cloud.api_key') ?:
+                        config('filesystems.disks.cloudinary.api_key') ?:
                         env('CLOUDINARY_API_KEY');
-                $apiSecret = config('cloudinary.cloud.api_secret') ?: 
-                           config('filesystems.disks.cloudinary.api_secret') ?: 
+                $apiSecret = config('cloudinary.cloud.api_secret') ?:
+                           config('filesystems.disks.cloudinary.api_secret') ?:
                            env('CLOUDINARY_API_SECRET');
 
                 // Fallback to parsing CLOUDINARY_URL
@@ -66,21 +66,21 @@ class CloudinaryService
         if ($this->shouldUseCloudinary() && !self::$initialized) {
             try {
                 // Get credentials from multiple sources for better compatibility
-                $cloudName = config('cloudinary.cloud.cloud_name') ?: 
-                           config('filesystems.disks.cloudinary.cloud_name') ?: 
+                $cloudName = config('cloudinary.cloud.cloud_name') ?:
+                           config('filesystems.disks.cloudinary.cloud_name') ?:
                            env('CLOUDINARY_CLOUD_NAME');
-                $apiKey = config('cloudinary.cloud.api_key') ?: 
-                        config('filesystems.disks.cloudinary.api_key') ?: 
+                $apiKey = config('cloudinary.cloud.api_key') ?:
+                        config('filesystems.disks.cloudinary.api_key') ?:
                         env('CLOUDINARY_API_KEY');
-                $apiSecret = config('cloudinary.cloud.api_secret') ?: 
-                           config('filesystems.disks.cloudinary.api_secret') ?: 
+                $apiSecret = config('cloudinary.cloud.api_secret') ?:
+                           config('filesystems.disks.cloudinary.api_secret') ?:
                            env('CLOUDINARY_API_SECRET');
 
                 if (!$cloudName || !$apiKey || !$apiSecret) {
-                    Log::error('Cloudinary credentials missing - cloud_name: ' . ($cloudName ? 'set' : 'missing') . 
-                              ', api_key: ' . ($apiKey ? 'set' : 'missing') . 
+                    Log::error('Cloudinary credentials missing - cloud_name: ' . ($cloudName ? 'set' : 'missing') .
+                              ', api_key: ' . ($apiKey ? 'set' : 'missing') .
                               ', api_secret: ' . ($apiSecret ? 'set' : 'missing'));
-                    
+
                     // Try to parse from CLOUDINARY_URL as fallback
                     $cloudinaryUrl = env('CLOUDINARY_URL');
                     if ($cloudinaryUrl) {
@@ -92,7 +92,7 @@ class CloudinaryService
                             Log::info('Parsed Cloudinary credentials from URL - cloud: ' . $cloudName);
                         }
                     }
-                    
+
                     if (!$cloudName || !$apiKey || !$apiSecret) {
                         Log::error('Failed to get Cloudinary credentials from all sources');
                         $this->cloudinary = null;
@@ -256,7 +256,7 @@ class CloudinaryService
         $cloudName = config('cloudinary.cloud.cloud_name') ?: env('CLOUDINARY_CLOUD_NAME');
         $apiKey = config('cloudinary.cloud.api_key') ?: env('CLOUDINARY_API_KEY');
         $apiSecret = config('cloudinary.cloud.api_secret') ?: env('CLOUDINARY_API_SECRET');
-        
+
         if ($cloudName && $apiKey && $apiSecret) {
             return true;
         }
