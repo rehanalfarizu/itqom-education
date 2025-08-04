@@ -180,13 +180,41 @@ class CloudinaryService
                 $publicId = ltrim($publicId, '/');
                 $publicId = str_replace('storage/', '', $publicId);
                 
+                // Check if we're dealing with a Cloudinary URL or ID that may have been modified
+                if (str_contains($publicId, 'res.cloudinary.com') || 
+                    str_contains($publicId, '/upload/')) {
+                    // Extract just the public ID from a full Cloudinary URL if that's what we received
+                    $parts = explode('/upload/', $publicId);
+                    if (count($parts) > 1) {
+                        $publicId = end($parts);
+                    }
+                }
+
                 // Add folder prefix if not already present
                 $folder = config('cloudinary.folder', 'itqom-platform');
-                if (!str_starts_with($publicId, $folder . '/')) {
+                if (!str_starts_with($publicId, $folder . '/') && !str_contains($publicId, '/')) {
                     $publicId = $folder . '/' . $publicId;
                 }
 
-                // Build transformation string
+                // Menggunakan Cloudinary SDK jika tersedia untuk membangun URL yang benar
+                if (class_exists('\\Cloudinary\\Cloudinary') && $this->cloudinary) {
+                    try {
+                        // Menggunakan Cloudinary SDK untuk menghasilkan URL yang valid
+                        $options = [];
+                        if (isset($transformations['width'])) $options['width'] = $transformations['width'];
+                        if (isset($transformations['height'])) $options['height'] = $transformations['height'];
+                        if (isset($transformations['crop'])) $options['crop'] = $transformations['crop'];
+                        if (isset($transformations['quality'])) $options['quality'] = $transformations['quality'];
+                        if (isset($transformations['fetch_format'])) $options['format'] = $transformations['fetch_format'];
+                        
+                        return $this->cloudinary->image($publicId)->toUrl($options);
+                    } catch (\Exception $e) {
+                        // Fallback ke metode manual jika SDK gagal
+                        Log::warning('Cloudinary SDK URL generation failed: ' . $e->getMessage() . ' - falling back to manual URL construction');
+                    }
+                }
+
+                // Manual URL construction as fallback
                 $transformString = [];
                 if (isset($transformations['width'])) $transformString[] = 'w_' . $transformations['width'];
                 if (isset($transformations['height'])) $transformString[] = 'h_' . $transformations['height'];
@@ -206,8 +234,11 @@ class CloudinaryService
                 }
 
                 $finalUrl = $baseUrl . $publicId;
-                Log::info('Cloudinary URL generated: ' . $finalUrl . ' from: ' . $publicIdOrPath);
-                
+                // Reduced logging to improve performance
+                if (app()->environment('local')) {
+                    Log::debug('Cloudinary URL generated: ' . $finalUrl);
+                }
+
                 return $finalUrl;
             } catch (\Exception $e) {
                 Log::warning('Cloudinary URL generation failed: ' . $e->getMessage());
@@ -478,7 +509,7 @@ class CloudinaryService
                 'prefix' => $folder,
                 'max_results' => 100
             ]);
-            
+
             return array_map(function($asset) {
                 return $asset['public_id'];
             }, $result['resources'] ?? []);

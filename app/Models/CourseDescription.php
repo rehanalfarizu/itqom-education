@@ -115,22 +115,27 @@ class CourseDescription extends Model
             return $value;
         }
 
+        // Cache results to improve performance
+        $cacheKey = 'image_url_' . md5($value);
+        if (cache()->has($cacheKey)) {
+            return cache()->get($cacheKey);
+        }
+
         // Untuk production (Heroku), gunakan Cloudinary
         if (app()->environment('production') || config('app.use_cloudinary', false)) {
             try {
                 $cloudinaryService = app(CloudinaryService::class);
-                
+
                 // Bersihkan path yang disimpan di database
                 $cleanPath = $value;
                 $cleanPath = ltrim($cleanPath, '/');
                 $cleanPath = str_replace('storage/', '', $cleanPath);
-                
-                // Log untuk debugging
-                \Illuminate\Support\Facades\Log::info('Processing image path', [
-                    'original' => $value,
-                    'cleaned' => $cleanPath
-                ]);
-                
+
+                // Reduce logging to improve performance - only log in local environment
+                if (app()->environment('local')) {
+                    \Illuminate\Support\Facades\Log::debug('Processing image path: ' . $cleanPath);
+                }
+
                 // Jika tidak ada folder prefix, tambahkan berdasarkan nama file
                 if (!str_contains($cleanPath, '/')) {
                     // Untuk file course, tambahkan courses/
@@ -138,7 +143,7 @@ class CourseDescription extends Model
                         $cleanPath = 'courses/' . $cleanPath;
                     }
                 }
-                
+
                 $optimizedUrl = $cloudinaryService->getOptimizedUrl($cleanPath, [
                     'width' => 800,
                     'height' => 450,
@@ -147,6 +152,9 @@ class CourseDescription extends Model
                     'format' => 'auto'
                 ]);
 
+                // Cache the result for 1 hour to improve performance
+                cache()->put($cacheKey, $optimizedUrl, 60 * 60);
+                
                 return $optimizedUrl;
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::warning('Cloudinary failed for image: ' . $e->getMessage(), [
