@@ -127,11 +127,13 @@ class CourseDescription extends Model
                     'format' => 'auto'
                 ]);
 
-                // Log untuk debugging
-                \Illuminate\Support\Facades\Log::info('Cloudinary URL generated', [
-                    'original' => $value,
-                    'optimized' => $optimizedUrl
-                ]);
+                // Only log in debug mode to reduce overhead
+                if (config('app.debug')) {
+                    \Illuminate\Support\Facades\Log::info('Cloudinary URL generated', [
+                        'original' => $value,
+                        'optimized' => $optimizedUrl
+                    ]);
+                }
 
                 return $optimizedUrl;
             } catch (\Exception $e) {

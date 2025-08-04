@@ -13,6 +13,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Columns\ImageColumn;
@@ -89,6 +90,9 @@ class CourseDescriptionResource extends Resource
                             ->helperText('Upload course image with 16:9 aspect ratio. Max: 5MB')
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if ($state) {
+                                    // Show loading state to user
+                                    $set('image_url', 'Processing...');
+                                    
                                     // Use hybrid upload when file is uploaded
                                     $cloudinaryService = app(CloudinaryService::class);
                                     try {
@@ -98,16 +102,14 @@ class CourseDescriptionResource extends Resource
                                     } catch (\Exception $e) {
                                         Log::warning('Hybrid upload failed, using local path: ' . $e->getMessage());
                                         // Continue with local path if hybrid fails
+                                        $set('image_url', 'Upload failed - please try again');
                                     }
                                 }
                             })
-                            ->dehydrated(false), // Don't save this field to database
+                            ->dehydrated(false) // Don't save this field to database
+                            ->loadingIndicatorPosition('center'),
 
-                        TextInput::make('image_url')
-                            ->label('Image URL (Auto-generated)')
-                            ->disabled()
-                            ->dehydrated(true) // Save this field to database
-                            ->columnSpanFull(),
+                        Hidden::make('image_url'), // Store the URL but don't display it
 
                         FileUpload::make('instructor_image_url')
                             ->label('Instructor Photo')
