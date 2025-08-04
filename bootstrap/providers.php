@@ -2,8 +2,9 @@
 
 return [
     App\Providers\AppServiceProvider::class,
-    App\Providers\CloudinaryConfigurationServiceProvider::class, // Add our custom provider first
+    App\Providers\CloudinaryConfigurationServiceProvider::class, // Configuration provider
+    App\Providers\CustomCloudinaryServiceProvider::class, // Our custom provider INSTEAD of original
     App\Providers\Filament\AdminPanelProvider::class,
     App\Providers\RouteServiceProvider::class,
-    CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider::class, // Keep the original
+    // CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider::class, // Disabled - using our custom one
 ];
