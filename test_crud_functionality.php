@@ -16,7 +16,7 @@ try {
         echo "   Course ID: {$course->id}\n";
         echo "   Title: {$course->title}\n";
         echo "   Image URL: {$course->image_url}\n";
-        echo "   Price: " . number_format($course->price) . "\n";
+        echo "   Price: " . number_format((float)$course->price) . "\n";
         echo "   Created: {$course->created_at}\n";
         echo "   Updated: {$course->updated_at}\n";
         echo "   ---\n";
