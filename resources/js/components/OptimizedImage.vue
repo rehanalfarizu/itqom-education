@@ -68,7 +68,7 @@ export default {
       let classes = this.class;
 
       if (!this.isLoaded) {
-        classes += ' opacity-0';
+        classes += ' opacity-0 bg-gray-200 animate-pulse';
       } else {
         classes += ' opacity-100 transition-opacity duration-300';
       }

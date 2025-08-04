@@ -30,7 +30,7 @@ class CustomCloudinaryServiceProvider extends ServiceProvider
             try {
                 // First, ensure global configuration is available
                 $this->ensureGlobalConfiguration($config);
-                
+
                 // Try to use existing global configuration
                 $globalConfig = Configuration::instance();
                 if ($globalConfig && $globalConfig->cloud->cloudName) {
@@ -47,7 +47,7 @@ class CustomCloudinaryServiceProvider extends ServiceProvider
 
             } catch (\Exception $e) {
                 Log::error('CustomCloudinaryServiceProvider: Error creating Cloudinary adapter: ' . $e->getMessage());
-                
+
                 // Emergency fallback with environment variables
                 try {
                     $cloudinary = $this->createCloudinaryFromEnv();
@@ -81,17 +81,17 @@ class CustomCloudinaryServiceProvider extends ServiceProvider
             }
 
             // Get credentials with multiple fallbacks
-            $cloudName = $config['cloud_name'] ?? $config['cloud'] ?? 
+            $cloudName = $config['cloud_name'] ?? $config['cloud'] ??
                         config('cloudinary.cloud.cloud_name') ??
                         config('filesystems.disks.cloudinary.cloud_name') ??
                         env('CLOUDINARY_CLOUD_NAME');
-                        
-            $apiKey = $config['api_key'] ?? $config['key'] ?? 
+
+            $apiKey = $config['api_key'] ?? $config['key'] ??
                      config('cloudinary.cloud.api_key') ??
                      config('filesystems.disks.cloudinary.api_key') ??
                      env('CLOUDINARY_API_KEY');
-                     
-            $apiSecret = $config['api_secret'] ?? $config['secret'] ?? 
+
+            $apiSecret = $config['api_secret'] ?? $config['secret'] ??
                         config('cloudinary.cloud.api_secret') ??
                         config('filesystems.disks.cloudinary.api_secret') ??
                         env('CLOUDINARY_API_SECRET');
@@ -137,7 +137,7 @@ class CustomCloudinaryServiceProvider extends ServiceProvider
         $cloudName = $config['cloud_name'] ?? $config['cloud'] ?? env('CLOUDINARY_CLOUD_NAME');
         $apiKey = $config['api_key'] ?? $config['key'] ?? env('CLOUDINARY_API_KEY');
         $apiSecret = $config['api_secret'] ?? $config['secret'] ?? env('CLOUDINARY_API_SECRET');
-        
+
         $cloudinaryConfig = [
             'cloud' => [
                 'cloud_name' => $cloudName,

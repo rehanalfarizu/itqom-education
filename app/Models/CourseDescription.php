@@ -119,21 +119,33 @@ class CourseDescription extends Model
         if (app()->environment('production') || config('app.use_cloudinary', false)) {
             try {
                 $cloudinaryService = app(CloudinaryService::class);
-                $optimizedUrl = $cloudinaryService->getOptimizedUrl($value, [
+                
+                // Bersihkan path yang disimpan di database
+                $cleanPath = $value;
+                $cleanPath = ltrim($cleanPath, '/');
+                $cleanPath = str_replace('storage/', '', $cleanPath);
+                
+                // Log untuk debugging
+                \Illuminate\Support\Facades\Log::info('Processing image path', [
+                    'original' => $value,
+                    'cleaned' => $cleanPath
+                ]);
+                
+                // Jika tidak ada folder prefix, tambahkan berdasarkan nama file
+                if (!str_contains($cleanPath, '/')) {
+                    // Untuk file course, tambahkan courses/
+                    if (str_contains($cleanPath, 'course_') || str_contains($cleanPath, '.jpg') || str_contains($cleanPath, '.png')) {
+                        $cleanPath = 'courses/' . $cleanPath;
+                    }
+                }
+                
+                $optimizedUrl = $cloudinaryService->getOptimizedUrl($cleanPath, [
                     'width' => 800,
                     'height' => 450,
                     'crop' => 'fill',
                     'quality' => 'auto',
                     'format' => 'auto'
                 ]);
-
-                // Only log in debug mode to reduce overhead
-                if (config('app.debug', false)) {
-                    \Illuminate\Support\Facades\Log::info('Cloudinary URL generated', [
-                        'original' => $value,
-                        'optimized' => $optimizedUrl
-                    ]);
-                }
 
                 return $optimizedUrl;
             } catch (\Exception $e) {
@@ -142,12 +154,7 @@ class CourseDescription extends Model
                     'error' => $e->getMessage()
                 ]);
 
-                // Fallback: jika Cloudinary gagal, coba sebagai path lokal
-                if (str_starts_with($value, '/storage/') || str_starts_with($value, 'storage/')) {
-                    return url($value);
-                }
-
-                // Ultimate fallback
+                // Fallback: return default image instead of broken URL
                 return '/images/default-course.jpg';
             }
         }

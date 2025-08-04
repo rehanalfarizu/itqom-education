@@ -12,7 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
-        
+
         // Add Cloudinary configuration middleware early in the stack
         $middleware->prependToGroup('web', \App\Http\Middleware\EnsureCloudinaryConfiguration::class);
     })

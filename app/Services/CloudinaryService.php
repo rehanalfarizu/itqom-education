@@ -160,6 +160,11 @@ class CloudinaryService
             return '/images/default-course.jpg';
         }
 
+        // Jika sudah berupa URL lengkap, return as is
+        if (filter_var($publicIdOrPath, FILTER_VALIDATE_URL)) {
+            return $publicIdOrPath;
+        }
+
         // Jika production dan cloudinary available
         if ($this->shouldUseCloudinary() && $this->cloudinary) {
             try {
@@ -169,6 +174,17 @@ class CloudinaryService
                 ];
 
                 $transformations = array_merge($defaultTransformations, $transformations);
+
+                // Clean the public ID - remove any leading slashes or storage paths
+                $publicId = $publicIdOrPath;
+                $publicId = ltrim($publicId, '/');
+                $publicId = str_replace('storage/', '', $publicId);
+                
+                // Add folder prefix if not already present
+                $folder = config('cloudinary.folder', 'itqom-platform');
+                if (!str_starts_with($publicId, $folder . '/')) {
+                    $publicId = $folder . '/' . $publicId;
+                }
 
                 // Build transformation string
                 $transformString = [];
@@ -189,7 +205,10 @@ class CloudinaryService
                     $baseUrl .= implode(',', $transformString) . '/';
                 }
 
-                return $baseUrl . $publicIdOrPath;
+                $finalUrl = $baseUrl . $publicId;
+                Log::info('Cloudinary URL generated: ' . $finalUrl . ' from: ' . $publicIdOrPath);
+                
+                return $finalUrl;
             } catch (\Exception $e) {
                 Log::warning('Cloudinary URL generation failed: ' . $e->getMessage());
                 // Fallback to default image
@@ -230,6 +249,14 @@ class CloudinaryService
                 return false;
             }
         }
+    }
+
+    /**
+     * Check if we should use Cloudinary (public method)
+     */
+    public function isCloudinaryEnabled(): bool
+    {
+        return $this->shouldUseCloudinary();
     }
 
     /**
@@ -415,6 +442,50 @@ class CloudinaryService
             return 'cloudinary (heroku)';
         }
         return $this->shouldUseCloudinary() ? 'cloudinary' : 'local';
+    }
+
+    /**
+     * Debug method to check if file exists in Cloudinary
+     */
+    public function checkFileExists(string $publicId): bool
+    {
+        if (!$this->shouldUseCloudinary() || !$this->cloudinary) {
+            return false;
+        }
+
+        try {
+            $result = $this->cloudinary->adminApi()->asset($publicId);
+            return !empty($result['public_id']);
+        } catch (\Exception $e) {
+            Log::warning('File check failed: ' . $e->getMessage(), ['public_id' => $publicId]);
+            return false;
+        }
+    }
+
+    /**
+     * List all files in a folder for debugging
+     */
+    public function listFiles(string $folder = null): array
+    {
+        if (!$this->shouldUseCloudinary() || !$this->cloudinary) {
+            return [];
+        }
+
+        try {
+            $folder = $folder ?? config('cloudinary.folder', 'itqom-platform');
+            $result = $this->cloudinary->adminApi()->assets([
+                'type' => 'upload',
+                'prefix' => $folder,
+                'max_results' => 100
+            ]);
+            
+            return array_map(function($asset) {
+                return $asset['public_id'];
+            }, $result['resources'] ?? []);
+        } catch (\Exception $e) {
+            Log::error('Failed to list Cloudinary files: ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**
