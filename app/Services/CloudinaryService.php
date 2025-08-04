@@ -43,14 +43,26 @@ class CloudinaryService
                 }
 
                 if ($cloudName && $apiKey && $apiSecret) {
+                    // Initialize Cloudinary with proper configuration
                     Configuration::instance([
                         'cloud' => [
                             'cloud_name' => $cloudName,
                             'api_key' => $apiKey,
                             'api_secret' => $apiSecret,
-                            'url' => ['secure' => true]
+                        ],
+                        'url' => [
+                            'secure' => true
                         ]
                     ]);
+                    
+                    // Also set global Cloudinary configuration for Laravel package
+                    config([
+                        'cloudinary.cloud.cloud_name' => $cloudName,
+                        'cloudinary.cloud.api_key' => $apiKey,
+                        'cloudinary.cloud.api_secret' => $apiSecret,
+                        'cloudinary.url.secure' => true
+                    ]);
+                    
                     self::$initialized = true;
                     Log::info('CloudinaryService: Static initialization successful for cloud: ' . $cloudName);
                 }
@@ -62,60 +74,50 @@ class CloudinaryService
 
     public function __construct()
     {
-        // Initialize Cloudinary with manual configuration - only once per request
-        if ($this->shouldUseCloudinary() && !self::$initialized) {
+        // Ensure static initialization is called
+        self::ensureInitialized();
+        
+        // Initialize Cloudinary instance if we should use it
+        if ($this->shouldUseCloudinary()) {
             try {
-                // Get credentials from multiple sources for better compatibility
-                $cloudName = config('cloudinary.cloud.cloud_name') ?:
-                           config('filesystems.disks.cloudinary.cloud_name') ?:
-                           env('CLOUDINARY_CLOUD_NAME');
-                $apiKey = config('cloudinary.cloud.api_key') ?:
-                        config('filesystems.disks.cloudinary.api_key') ?:
-                        env('CLOUDINARY_API_KEY');
-                $apiSecret = config('cloudinary.cloud.api_secret') ?:
-                           config('filesystems.disks.cloudinary.api_secret') ?:
-                           env('CLOUDINARY_API_SECRET');
+                // Get credentials from environment
+                $cloudName = config('cloudinary.cloud.cloud_name') ?: env('CLOUDINARY_CLOUD_NAME');
+                $apiKey = config('cloudinary.cloud.api_key') ?: env('CLOUDINARY_API_KEY');
+                $apiSecret = config('cloudinary.cloud.api_secret') ?: env('CLOUDINARY_API_SECRET');
 
-                if (!$cloudName || !$apiKey || !$apiSecret) {
-                    Log::error('Cloudinary credentials missing - cloud_name: ' . ($cloudName ? 'set' : 'missing') .
-                              ', api_key: ' . ($apiKey ? 'set' : 'missing') .
-                              ', api_secret: ' . ($apiSecret ? 'set' : 'missing'));
-
-                    // Try to parse from CLOUDINARY_URL as fallback
+                // Parse from CLOUDINARY_URL if individual vars not available
+                if ((!$cloudName || !$apiKey || !$apiSecret) && env('CLOUDINARY_URL')) {
                     $cloudinaryUrl = env('CLOUDINARY_URL');
-                    if ($cloudinaryUrl) {
-                        Log::info('Attempting to parse from CLOUDINARY_URL');
-                        if (preg_match('/cloudinary:\/\/(\d+):([^@]+)@(.+)/', $cloudinaryUrl, $matches)) {
-                            $apiKey = $matches[1];
-                            $apiSecret = $matches[2];
-                            $cloudName = $matches[3];
-                            Log::info('Parsed Cloudinary credentials from URL - cloud: ' . $cloudName);
-                        }
-                    }
-
-                    if (!$cloudName || !$apiKey || !$apiSecret) {
-                        Log::error('Failed to get Cloudinary credentials from all sources');
-                        $this->cloudinary = null;
-                        return;
+                    if (preg_match('/cloudinary:\/\/(\d+):([^@]+)@(.+)/', $cloudinaryUrl, $matches)) {
+                        $apiKey = $matches[1];
+                        $apiSecret = $matches[2];
+                        $cloudName = $matches[3];
                     }
                 }
 
-                Configuration::instance([
-                    'cloud' => [
-                        'cloud_name' => $cloudName,
-                        'api_key' => $apiKey,
-                        'api_secret' => $apiSecret,
+                if ($cloudName && $apiKey && $apiSecret) {
+                    // Create Cloudinary instance
+                    $this->cloudinary = new CloudinaryApi([
+                        'cloud' => [
+                            'cloud_name' => $cloudName,
+                            'api_key' => $apiKey,
+                            'api_secret' => $apiSecret,
+                        ],
                         'url' => ['secure' => true]
-                    ]
-                ]);
-                $this->cloudinary = new CloudinaryApi();
-                self::$initialized = true;
-                Log::info('Cloudinary initialized successfully with cloud: ' . $cloudName);
+                    ]);
+                    
+                    Log::info('Cloudinary instance created successfully for cloud: ' . $cloudName);
+                } else {
+                    Log::error('Failed to get complete Cloudinary credentials');
+                    $this->cloudinary = null;
+                }
             } catch (\Exception $e) {
-                Log::error('Cloudinary initialization failed: ' . $e->getMessage());
+                Log::error('Cloudinary instance creation failed: ' . $e->getMessage());
                 $this->cloudinary = null;
             }
-        } else if ($this->shouldUseCloudinary() && self::$initialized) {
+        } else {
+            $this->cloudinary = null;
+        }
             // Reuse existing configuration
             $this->cloudinary = new CloudinaryApi();
         } else {
@@ -199,17 +201,18 @@ class CloudinaryService
                 // Menggunakan Cloudinary SDK jika tersedia untuk membangun URL yang benar
                 if (class_exists('\\Cloudinary\\Cloudinary') && $this->cloudinary) {
                     try {
-                        // Menggunakan Cloudinary SDK untuk menghasilkan URL yang valid
-                        $options = [];
-                        if (isset($transformations['width'])) $options['width'] = $transformations['width'];
-                        if (isset($transformations['height'])) $options['height'] = $transformations['height'];
-                        if (isset($transformations['crop'])) $options['crop'] = $transformations['crop'];
-                        if (isset($transformations['quality'])) $options['quality'] = $transformations['quality'];
-                        if (isset($transformations['fetch_format'])) $options['format'] = $transformations['fetch_format'];
+                        // Build transformations array properly for Cloudinary SDK
+                        $transformArray = [];
+                        if (isset($transformations['width'])) $transformArray['width'] = $transformations['width'];
+                        if (isset($transformations['height'])) $transformArray['height'] = $transformations['height'];
+                        if (isset($transformations['crop'])) $transformArray['crop'] = $transformations['crop'];
+                        if (isset($transformations['quality'])) $transformArray['quality'] = $transformations['quality'];
+                        if (isset($transformations['fetch_format'])) $transformArray['fetch_format'] = $transformations['fetch_format'];
                         
-                        // Wrap options in transformation array to prevent Array to String conversion
-                        if (!empty($options)) {
-                            return $this->cloudinary->image($publicId)->toUrl(['transformation' => $options]);
+                        // Use Cloudinary SDK with proper format
+                        if (!empty($transformArray)) {
+                            // Pass transformations as individual parameters, not nested array
+                            return $this->cloudinary->image($publicId)->toUrl($transformArray);
                         } else {
                             return $this->cloudinary->image($publicId)->toUrl();
                         }
@@ -410,6 +413,47 @@ class CloudinaryService
 
         // Convert path to storage URL
         return Storage::url($path);
+    }
+
+    /**
+     * Ensure Cloudinary is properly initialized
+     */
+    private function ensureCloudinaryInitialized(): void
+    {
+        if ($this->shouldUseCloudinary() && !$this->cloudinary) {
+            try {
+                // Get credentials
+                $cloudName = config('cloudinary.cloud.cloud_name') ?: env('CLOUDINARY_CLOUD_NAME');
+                $apiKey = config('cloudinary.cloud.api_key') ?: env('CLOUDINARY_API_KEY');
+                $apiSecret = config('cloudinary.cloud.api_secret') ?: env('CLOUDINARY_API_SECRET');
+
+                // Parse from CLOUDINARY_URL if needed
+                if ((!$cloudName || !$apiKey || !$apiSecret) && env('CLOUDINARY_URL')) {
+                    $cloudinaryUrl = env('CLOUDINARY_URL');
+                    if (preg_match('/cloudinary:\/\/(\d+):([^@]+)@(.+)/', $cloudinaryUrl, $matches)) {
+                        $apiKey = $matches[1];
+                        $apiSecret = $matches[2];
+                        $cloudName = $matches[3];
+                    }
+                }
+
+                if ($cloudName && $apiKey && $apiSecret) {
+                    $this->cloudinary = new CloudinaryApi([
+                        'cloud' => [
+                            'cloud_name' => $cloudName,
+                            'api_key' => $apiKey,
+                            'api_secret' => $apiSecret,
+                        ],
+                        'url' => ['secure' => true]
+                    ]);
+                    Log::info('Cloudinary re-initialized successfully');
+                } else {
+                    Log::error('Failed to re-initialize Cloudinary: missing credentials');
+                }
+            } catch (\Exception $e) {
+                Log::error('Cloudinary re-initialization failed: ' . $e->getMessage());
+            }
+        }
     }
 
     /**
