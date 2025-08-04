@@ -92,11 +92,9 @@ class CourseDescriptionResource extends Resource
                                     // Use hybrid upload when file is uploaded
                                     $cloudinaryService = app(CloudinaryService::class);
                                     try {
-                                        $hybridResult = $cloudinaryService->uploadImageHybrid($state);
-                                        if ($hybridResult['success']) {
-                                            $set('image_url', $hybridResult['path']);
-                                            Log::info('Hybrid upload successful: ' . $hybridResult['path']);
-                                        }
+                                        $imagePath = $cloudinaryService->uploadImageHybrid($state);
+                                        $set('image_url', $imagePath);
+                                        Log::info('Hybrid upload successful: ' . $imagePath);
                                     } catch (\Exception $e) {
                                         Log::warning('Hybrid upload failed, using local path: ' . $e->getMessage());
                                         // Continue with local path if hybrid fails
