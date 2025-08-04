@@ -13,6 +13,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Get;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Repeater;
@@ -93,16 +94,16 @@ class CourseDescriptionResource extends Resource
                                     $set('image_url', 'Uploading...');
 
                                     try {
-                                        // Use a more specific upload method with consistent path structure
+                                        // Use CloudinaryService to upload with hybrid approach
                                         $cloudinaryService = app(CloudinaryService::class);
                                         
-                                        // Generate a consistent naming scheme for Cloudinary
-                                        $courseId = $this->record ? $this->record->id : time();
+                                        // Generate a unique public ID for Cloudinary
                                         $timestamp = time();
+                                        $randomId = uniqid();
                                         $extension = pathinfo($state->getClientOriginalName(), PATHINFO_EXTENSION) ?: 'jpg';
-                                        $publicId = "course_{$courseId}_{$timestamp}";
+                                        $publicId = "course_{$timestamp}_{$randomId}";
                                         
-                                        // Always upload to 'courses' folder
+                                        // Upload to 'courses' folder in Cloudinary
                                         $imagePath = $cloudinaryService->uploadImageWithPublicId($state, $publicId, 'courses');
                                         $set('image_url', $imagePath);
                                         
