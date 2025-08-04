@@ -32,15 +32,15 @@ $apiEndpoints = [
 foreach ($apiEndpoints as $endpoint => $description) {
     try {
         $response = makeHttpRequest($baseUrl . $endpoint);
-
+        
         if ($response['status'] === 200) {
             echo "   ✅ $description: HTTP 200\n";
-
+            
             // Try to parse JSON
             $data = json_decode($response['body'], true);
             if (json_last_error() === JSON_ERROR_NONE) {
                 echo "     📊 Valid JSON response\n";
-
+                
                 // Check for course data
                 if (isset($data['data']) || isset($data[0])) {
                     echo "     📋 Contains course data\n";
@@ -50,7 +50,7 @@ foreach ($apiEndpoints as $endpoint => $description) {
             } else {
                 echo "     ⚠️ Invalid JSON response\n";
             }
-
+            
         } else {
             echo "   ❌ $description: HTTP " . $response['status'] . "\n";
         }
@@ -66,7 +66,7 @@ try {
     $response = makeHttpRequest($baseUrl . '/admin');
     if ($response['status'] === 200 || $response['status'] === 302) {
         echo "   ✅ PASS: Admin panel accessible (HTTP " . $response['status'] . ")\n";
-
+        
         if (strpos($response['body'], 'login') !== false || strpos($response['body'], 'Filament') !== false) {
             echo "   🔐 Login page or admin interface detected\n";
         }
@@ -84,23 +84,23 @@ try {
 echo "\n🧪 Test 4: Image URLs in API Response\n";
 try {
     $response = makeHttpRequest($baseUrl . '/api/courses');
-
+    
     if ($response['status'] === 200) {
         $data = json_decode($response['body'], true);
-
+        
         if ($data && is_array($data)) {
             $imageUrlsFound = 0;
             $cloudinaryUrls = 0;
             $invalidUrls = 0;
-
+            
             // Handle different API response structures
             $courses = isset($data['data']) ? $data['data'] : $data;
-
+            
             foreach ($courses as $course) {
                 if (isset($course['image_url'])) {
                     $imageUrlsFound++;
                     $imageUrl = $course['image_url'];
-
+                    
                     if (strpos($imageUrl, 'cloudinary.com') !== false) {
                         $cloudinaryUrls++;
                         echo "   ✅ Course '{$course['title']}': Cloudinary URL\n";
@@ -115,13 +115,13 @@ try {
                     }
                 }
             }
-
+            
             echo "\n   📊 Summary:\n";
             echo "     Total courses: " . count($courses) . "\n";
             echo "     With image URLs: $imageUrlsFound\n";
             echo "     Using Cloudinary: $cloudinaryUrls\n";
             echo "     Invalid URLs: $invalidUrls\n";
-
+            
             if ($invalidUrls === 0 && $cloudinaryUrls > 0) {
                 echo "   ✅ All image URLs are valid\n";
                 $testResults['image_urls'] = 'PASS';
@@ -129,7 +129,7 @@ try {
                 echo "   ⚠️ Some image URLs need fixing\n";
                 $testResults['image_urls'] = 'PARTIAL';
             }
-
+            
         } else {
             echo "   ❌ Invalid API response format\n";
             $testResults['image_urls'] = 'FAIL';
@@ -155,7 +155,7 @@ foreach ($testImageUrls as $imageUrl) {
     try {
         $response = makeHttpRequest($imageUrl);
         $filename = basename(parse_url($imageUrl, PHP_URL_PATH));
-
+        
         if ($response['status'] === 200) {
             echo "   ✅ '$filename': Image accessible\n";
         } elseif ($response['status'] === 404) {
@@ -180,16 +180,16 @@ function makeHttpRequest($url) {
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Unit Test Bot)');
-
+    
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $error = curl_error($ch);
     curl_close($ch);
-
+    
     if ($error) {
         throw new \Exception("cURL Error: $error");
     }
-
+    
     return [
         'status' => $httpCode,
         'body' => $response

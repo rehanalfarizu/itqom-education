@@ -160,8 +160,18 @@ class CloudinaryService
             return '/images/default-course.jpg';
         }
 
-        // Jika sudah berupa URL lengkap, return as is
+        // Jika sudah berupa URL lengkap, return as is (tapi cek dulu duplikasi)
         if (filter_var($publicIdOrPath, FILTER_VALIDATE_URL)) {
+            // Cek apakah ada duplikasi transformasi
+            if (str_contains($publicIdOrPath, 'w_800,h_450,c_fill,q_auto,f_auto/w_800,h_450,c_fill,q_auto,f_auto/')) {
+                // Hapus duplikasi transformasi
+                $cleanUrl = str_replace(
+                    'w_800,h_450,c_fill,q_auto,f_auto/w_800,h_450,c_fill,q_auto,f_auto/',
+                    'w_800,h_450,c_fill,q_auto,f_auto/',
+                    $publicIdOrPath
+                );
+                return $cleanUrl;
+            }
             return $publicIdOrPath;
         }
 
@@ -190,15 +200,10 @@ class CloudinaryService
                     }
                 }
 
-                // Add folder prefix if not already present - prioritize livewire-tmp for Filament compatibility
-                if (!str_contains($publicId, '/')) {
-                    // If no folder specified, check common patterns
-                    if (str_contains($publicId, 'livewire') || str_contains($publicId, 'tmp')) {
-                        $publicId = 'livewire-tmp/' . $publicId;
-                    } else {
-                        // Default to livewire-tmp for new uploads
-                        $publicId = 'livewire-tmp/' . $publicId;
-                    }
+                // Add folder prefix if not already present
+                $folder = config('cloudinary.folder', 'itqom-platform');
+                if (!str_starts_with($publicId, $folder . '/') && !str_contains($publicId, '/')) {
+                    $publicId = $folder . '/' . $publicId;
                 }
 
                 // Menggunakan Cloudinary SDK jika tersedia untuk membangun URL yang benar
@@ -342,8 +347,7 @@ class CloudinaryService
             throw new \Exception('Cloudinary not properly initialized - check credentials');
         }
 
-        // Use livewire-tmp as default for Filament compatibility
-        $folder = $folder ?? 'livewire-tmp';
+        $folder = $folder ?? config('cloudinary.folder', 'itqom-platform');
 
         $result = Cloudinary::upload($file->getRealPath(), [
             'folder' => $folder,
@@ -363,8 +367,7 @@ class CloudinaryService
      */
     private function uploadToCloudinaryWithPublicId(UploadedFile $file, string $publicId, ?string $folder = null): string
     {
-        // Use livewire-tmp as default for Filament compatibility
-        $folder = $folder ?? 'livewire-tmp';
+        $folder = $folder ?? config('cloudinary.folder', 'itqom-platform');
 
         $result = Cloudinary::upload($file->getRealPath(), [
             'folder' => $folder,

@@ -21,18 +21,18 @@ $updated = 0;
 
 foreach ($courses as $course) {
     $oldPath = $course->image_url;
-
+    
     // Convert courses/ back to livewire-tmp/
     $newPath = str_replace('courses/', 'livewire-tmp/', $oldPath);
-
+    
     echo "Course {$course->id}: '{$course->title}'\n";
     echo "  Old: {$oldPath}\n";
     echo "  New: {$newPath}\n";
-
+    
     // Update the path
     $course->image_url = $newPath;
     $course->save();
-
+    
     echo "  ✅ Reverted!\n\n";
     $updated++;
 }
