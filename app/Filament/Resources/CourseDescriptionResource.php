@@ -13,7 +13,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Get;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Repeater;
@@ -94,22 +93,13 @@ class CourseDescriptionResource extends Resource
                                     $set('image_url', 'Uploading...');
 
                                     try {
-                                        // Use CloudinaryService to upload with hybrid approach
+                                        // Use hybrid upload when file is uploaded
                                         $cloudinaryService = app(CloudinaryService::class);
-                                        
-                                        // Generate a unique public ID for Cloudinary
-                                        $timestamp = time();
-                                        $randomId = uniqid();
-                                        $extension = pathinfo($state->getClientOriginalName(), PATHINFO_EXTENSION) ?: 'jpg';
-                                        $publicId = "course_{$timestamp}_{$randomId}";
-                                        
-                                        // Upload to 'courses' folder in Cloudinary
-                                        $imagePath = $cloudinaryService->uploadImageWithPublicId($state, $publicId, 'courses');
+                                        $imagePath = $cloudinaryService->uploadImageHybrid($state);
                                         $set('image_url', $imagePath);
-                                        
                                         // Clear the temp upload to reduce form size
                                         $set('temp_image_upload', null);
-                                        Log::info('Cloudinary upload successful: ' . $imagePath);
+                                        Log::info('Hybrid upload successful: ' . $imagePath);
                                     } catch (\Exception $e) {
                                         Log::error('Upload failed: ' . $e->getMessage());
                                         $set('image_url', 'Upload failed - please try again');
