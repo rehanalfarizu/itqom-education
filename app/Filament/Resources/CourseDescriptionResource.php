@@ -73,7 +73,7 @@ class CourseDescriptionResource extends Resource
                 // Course Media
                 Forms\Components\Section::make('Course Media')
                     ->schema([
-                        FileUpload::make('image_url')
+                        FileUpload::make('temp_image_upload')
                             ->label('Course Image')
                             ->image()
                             ->disk('public')
@@ -101,6 +101,12 @@ class CourseDescriptionResource extends Resource
                                     }
                                 }
                             })
+                            ->dehydrated(false), // Don't save this field to database
+
+                        TextInput::make('image_url')
+                            ->label('Image URL (Auto-generated)')
+                            ->disabled()
+                            ->dehydrated(true) // Save this field to database
                             ->columnSpanFull(),
 
                         FileUpload::make('instructor_image_url')
