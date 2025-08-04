@@ -91,7 +91,7 @@ class CourseDescriptionResource extends Resource
                                 if ($state) {
                                     // Show immediate feedback
                                     $set('image_url', 'Uploading...');
-                                    
+
                                     try {
                                         // Use hybrid upload when file is uploaded
                                         $cloudinaryService = app(CloudinaryService::class);
