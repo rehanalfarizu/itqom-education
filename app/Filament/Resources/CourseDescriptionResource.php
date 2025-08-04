@@ -89,19 +89,19 @@ class CourseDescriptionResource extends Resource
                             ->helperText('Upload course image with 16:9 aspect ratio. Max: 5MB')
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if ($state) {
-                                    // Show loading state to user
-                                    $set('image_url', 'Processing...');
+                                    // Show immediate feedback
+                                    $set('image_url', 'Uploading...');
                                     
-                                    // Use hybrid upload when file is uploaded
-                                    $cloudinaryService = app(CloudinaryService::class);
                                     try {
+                                        // Use hybrid upload when file is uploaded
+                                        $cloudinaryService = app(CloudinaryService::class);
                                         $imagePath = $cloudinaryService->uploadImageHybrid($state);
                                         $set('image_url', $imagePath);
                                         // Clear the temp upload to reduce form size
                                         $set('temp_image_upload', null);
                                         Log::info('Hybrid upload successful: ' . $imagePath);
                                     } catch (\Exception $e) {
-                                        Log::warning('Hybrid upload failed, using local path: ' . $e->getMessage());
+                                        Log::error('Upload failed: ' . $e->getMessage());
                                         $set('image_url', 'Upload failed - please try again');
                                     }
                                 }
@@ -130,13 +130,14 @@ class CourseDescriptionResource extends Resource
                             ->helperText('Upload instructor photo with 1:1 aspect ratio. Max: 2MB')
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if ($state) {
-                                    $cloudinaryService = app(CloudinaryService::class);
                                     try {
+                                        $cloudinaryService = app(CloudinaryService::class);
                                         $imagePath = $cloudinaryService->uploadImageHybrid($state);
                                         $set('instructor_image_url', $imagePath);
                                         Log::info('Instructor hybrid upload successful: ' . $imagePath);
                                     } catch (\Exception $e) {
-                                        Log::warning('Instructor image hybrid upload failed: ' . $e->getMessage());
+                                        Log::error('Instructor image upload failed: ' . $e->getMessage());
+                                        $set('instructor_image_url', 'Upload failed - please try again');
                                     }
                                 }
                             }),

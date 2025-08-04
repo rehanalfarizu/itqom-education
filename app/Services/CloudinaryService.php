@@ -19,13 +19,15 @@ class CloudinaryService
         // Initialize Cloudinary with manual configuration - only once per request
         if ($this->shouldUseCloudinary() && !self::$initialized) {
             try {
-                // Pastikan konfigurasi tersedia
-                $cloudName = config('cloudinary.cloud.cloud_name');
-                $apiKey = config('cloudinary.cloud.api_key');
-                $apiSecret = config('cloudinary.cloud.api_secret');
+                // Get credentials from config first, then fallback to env
+                $cloudName = config('cloudinary.cloud.cloud_name') ?: env('CLOUDINARY_CLOUD_NAME');
+                $apiKey = config('cloudinary.cloud.api_key') ?: env('CLOUDINARY_API_KEY');
+                $apiSecret = config('cloudinary.cloud.api_secret') ?: env('CLOUDINARY_API_SECRET');
 
                 if (!$cloudName || !$apiKey || !$apiSecret) {
-                    Log::warning('Cloudinary credentials not available, using fallback');
+                    Log::error('Cloudinary credentials missing - cloud_name: ' . ($cloudName ? 'set' : 'missing') . 
+                              ', api_key: ' . ($apiKey ? 'set' : 'missing') . 
+                              ', api_secret: ' . ($apiSecret ? 'set' : 'missing'));
                     $this->cloudinary = null;
                     return;
                 }
@@ -40,9 +42,9 @@ class CloudinaryService
                 ]);
                 $this->cloudinary = new CloudinaryApi();
                 self::$initialized = true;
-                Log::info('Cloudinary initialized successfully');
+                Log::info('Cloudinary initialized successfully with cloud: ' . $cloudName);
             } catch (\Exception $e) {
-                Log::warning('Cloudinary initialization failed: ' . $e->getMessage());
+                Log::error('Cloudinary initialization failed: ' . $e->getMessage());
                 $this->cloudinary = null;
             }
         } else if ($this->shouldUseCloudinary() && self::$initialized) {
@@ -182,8 +184,12 @@ class CloudinaryService
             return true;
         }
 
-        // Check if Cloudinary credentials are available
-        if (config('cloudinary.cloud.cloud_name') && config('cloudinary.cloud.api_key') && config('cloudinary.cloud.api_secret')) {
+        // Check if all Cloudinary credentials are available
+        $cloudName = config('cloudinary.cloud.cloud_name') ?: env('CLOUDINARY_CLOUD_NAME');
+        $apiKey = config('cloudinary.cloud.api_key') ?: env('CLOUDINARY_API_KEY');
+        $apiSecret = config('cloudinary.cloud.api_secret') ?: env('CLOUDINARY_API_SECRET');
+        
+        if ($cloudName && $apiKey && $apiSecret) {
             return true;
         }
 
@@ -196,6 +202,11 @@ class CloudinaryService
      */
     private function uploadToCloudinary(UploadedFile $file, ?string $folder = null): string
     {
+        // Double check configuration before attempting upload
+        if (!$this->cloudinary) {
+            throw new \Exception('Cloudinary not properly initialized - check credentials');
+        }
+
         $folder = $folder ?? config('cloudinary.folder', 'itqom-platform');
 
         $result = Cloudinary::upload($file->getRealPath(), [
@@ -240,7 +251,7 @@ class CloudinaryService
     {
         // Ensure folder has a default value
         $folder = $folder ?? 'courses';
-        
+
         if ($customName) {
             $filename = $customName . '.' . $file->getClientOriginalExtension();
         } else {
@@ -277,43 +288,34 @@ class CloudinaryService
     {
         // Set default folder if null
         $folder = $folder ?? 'courses';
-        
+
+        // Fast check - if we should use Cloudinary but it's not initialized, fail fast
+        if ($this->shouldUseCloudinary() && !$this->cloudinary) {
+            Log::error('Primary storage failed: Invalid configuration, please set up your environment');
+            // Use local storage as immediate fallback on configuration error
+            try {
+                return $this->storeImageLocally($file, $folder);
+            } catch (\Exception $e) {
+                throw new \Exception('All storage methods failed: Configuration invalid and local storage unavailable');
+            }
+        }
+
         $primaryPath = null;
-        $backupPath = null;
 
         try {
-            if ($this->shouldUseCloudinary()) {
-                // Primary: Cloudinary, Backup: Local (if possible)
+            if ($this->shouldUseCloudinary() && $this->cloudinary) {
+                // Primary: Cloudinary only (no backup to reduce processing time)
                 $primaryPath = $this->uploadToCloudinary($file, $folder);
-
-                // Try to store locally as backup (will fail on Heroku, but that's OK)
-                try {
-                    $this->storeImageLocally($file, $folder);
-                } catch (\Exception $e) {
-                    // Silent fail - expected on Heroku
-                }
-
                 return $primaryPath;
             } else {
-                // Primary: Local, Backup: Cloudinary (optional)
+                // Primary: Local storage only
                 $primaryPath = $this->storeImageLocally($file, $folder);
-
-                // Optional: Store to Cloudinary as backup/CDN
-                if (env('ENABLE_CLOUDINARY_BACKUP', false)) {
-                    try {
-                        $this->uploadToCloudinary($file, $folder);
-                    } catch (\Exception $e) {
-                        // Silent fail - backup is optional
-                        Log::info('Cloudinary backup failed: ' . $e->getMessage());
-                    }
-                }
-
                 return $primaryPath;
             }
         } catch (\Exception $e) {
             Log::error('Primary storage failed: ' . $e->getMessage());
 
-            // Fallback strategy
+            // Fast fallback strategy
             if ($this->shouldUseCloudinary() && !$primaryPath) {
                 // Try local as fallback
                 try {
@@ -322,11 +324,15 @@ class CloudinaryService
                     throw new \Exception('All storage methods failed');
                 }
             } else {
-                // Try Cloudinary as fallback
-                try {
-                    return $this->uploadToCloudinary($file, $folder);
-                } catch (\Exception $fallbackError) {
-                    throw new \Exception('All storage methods failed');
+                // Try Cloudinary as fallback (only if credentials are available)
+                if ($this->cloudinary) {
+                    try {
+                        return $this->uploadToCloudinary($file, $folder);
+                    } catch (\Exception $fallbackError) {
+                        throw new \Exception('All storage methods failed');
+                    }
+                } else {
+                    throw new \Exception('All storage methods failed: No fallback available');
                 }
             }
         }
