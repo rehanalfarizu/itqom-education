@@ -93,15 +93,25 @@ class CourseDescriptionResource extends Resource
                                     $set('image_url', 'Uploading...');
 
                                     try {
-                                        // Use hybrid upload when file is uploaded
+                                        // ALWAYS upload to courses folder with proper naming
                                         $cloudinaryService = app(CloudinaryService::class);
-                                        $imagePath = $cloudinaryService->uploadImageHybrid($state);
+                                        
+                                        // Generate a proper filename for courses
+                                        $originalName = $state->getClientOriginalName();
+                                        $extension = $state->getClientOriginalExtension();
+                                        $timestamp = time();
+                                        $randomString = bin2hex(random_bytes(8));
+                                        $fileName = "course_{$timestamp}_{$randomString}";
+                                        
+                                        // Upload directly to courses folder with our custom public_id
+                                        $imagePath = $cloudinaryService->uploadImageWithPublicId($state, $fileName, 'courses');
                                         $set('image_url', $imagePath);
+                                        
                                         // Clear the temp upload to reduce form size
                                         $set('temp_image_upload', null);
-                                        Log::info('Hybrid upload successful: ' . $imagePath);
+                                        Log::info('Course image uploaded successfully to: courses/' . $fileName);
                                     } catch (\Exception $e) {
-                                        Log::error('Upload failed: ' . $e->getMessage());
+                                        Log::error('Course image upload failed: ' . $e->getMessage());
                                         $set('image_url', 'Upload failed - please try again');
                                     }
                                 }
@@ -132,9 +142,16 @@ class CourseDescriptionResource extends Resource
                                 if ($state) {
                                     try {
                                         $cloudinaryService = app(CloudinaryService::class);
-                                        $imagePath = $cloudinaryService->uploadImageHybrid($state);
+                                        
+                                        // Generate proper filename for instructor images
+                                        $timestamp = time();
+                                        $randomString = bin2hex(random_bytes(8));
+                                        $fileName = "instructor_{$timestamp}_{$randomString}";
+                                        
+                                        // Upload to instructors folder
+                                        $imagePath = $cloudinaryService->uploadImageWithPublicId($state, $fileName, 'instructors');
                                         $set('instructor_image_url', $imagePath);
-                                        Log::info('Instructor hybrid upload successful: ' . $imagePath);
+                                        Log::info('Instructor image uploaded successfully to: instructors/' . $fileName);
                                     } catch (\Exception $e) {
                                         Log::error('Instructor image upload failed: ' . $e->getMessage());
                                         $set('instructor_image_url', 'Upload failed - please try again');
