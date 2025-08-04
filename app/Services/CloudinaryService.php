@@ -179,9 +179,9 @@ class CloudinaryService
                 $publicId = $publicIdOrPath;
                 $publicId = ltrim($publicId, '/');
                 $publicId = str_replace('storage/', '', $publicId);
-                
+
                 // Check if we're dealing with a Cloudinary URL or ID that may have been modified
-                if (str_contains($publicId, 'res.cloudinary.com') || 
+                if (str_contains($publicId, 'res.cloudinary.com') ||
                     str_contains($publicId, '/upload/')) {
                     // Extract just the public ID from a full Cloudinary URL if that's what we received
                     $parts = explode('/upload/', $publicId);
@@ -206,7 +206,7 @@ class CloudinaryService
                         if (isset($transformations['crop'])) $options['crop'] = $transformations['crop'];
                         if (isset($transformations['quality'])) $options['quality'] = $transformations['quality'];
                         if (isset($transformations['fetch_format'])) $options['format'] = $transformations['fetch_format'];
-                        
+
                         return $this->cloudinary->image($publicId)->toUrl($options);
                     } catch (\Exception $e) {
                         // Fallback ke metode manual jika SDK gagal

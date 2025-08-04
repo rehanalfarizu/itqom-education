@@ -154,7 +154,7 @@ class CourseDescription extends Model
 
                 // Cache the result for 1 hour to improve performance
                 cache()->put($cacheKey, $optimizedUrl, 60 * 60);
-                
+
                 return $optimizedUrl;
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::warning('Cloudinary failed for image: ' . $e->getMessage(), [
