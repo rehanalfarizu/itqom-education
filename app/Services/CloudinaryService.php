@@ -496,7 +496,7 @@ class CloudinaryService
     /**
      * List all files in a folder for debugging
      */
-    public function listFiles(string $folder = null): array
+    public function listFiles(?string $folder = null): array
     {
         if (!$this->shouldUseCloudinary() || !$this->cloudinary) {
             return [];

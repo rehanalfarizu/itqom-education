@@ -49,7 +49,7 @@ try {
                 if($result && isset($result['public_id'])) {
                     // Delete the old file
                     $adminApi->deleteAssets([$oldPublicId]);
-                    
+
                     $migratedFiles[$oldPublicId] = $result['public_id'];
                     echo "     ✅ Success: {$result['public_id']}\n";
                 } else {

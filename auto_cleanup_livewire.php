@@ -15,23 +15,23 @@ try {
     echo "1. Scanning livewire-tmp folder...\n";
     $result = $cloudinaryService->listFiles('livewire-tmp');
     $files = $result['resources'] ?? [];
-    
+
     if(count($files) == 0) {
         echo "   ✅ No files to cleanup\n";
         exit;
     }
-    
+
     echo "   Found " . count($files) . " files\n";
-    
+
     $cleanedCount = 0;
     $now = new DateTime();
-    
+
     echo "\n2. Cleaning up old files (older than 24 hours)...\n";
-    
+
     foreach($files as $file) {
         $createdAt = new DateTime($file->created_at);
         $hoursDiff = $now->diff($createdAt)->h + ($now->diff($createdAt)->days * 24);
-        
+
         if($hoursDiff > 24) {
             try {
                 $deleted = $cloudinaryService->deleteImage($file->public_id);
@@ -48,10 +48,10 @@ try {
             echo "   ⏳ Keeping recent file: {$file->public_id} ({$hoursDiff}h old)\n";
         }
     }
-    
+
     echo "\n=== CLEANUP COMPLETED ===\n";
     echo "Cleaned up {$cleanedCount} old files\n";
-    
+
 } catch(\Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
 }

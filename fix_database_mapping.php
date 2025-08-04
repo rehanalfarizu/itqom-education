@@ -18,30 +18,30 @@ try {
         2 => 'react-native', // Course ID 2 - React Native
         3 => 'ui-ux-design'  // Course ID 3 - UI/UX Design
     ];
-    
+
     echo "1. Mapping yang akan diterapkan:\n";
     foreach($mapping as $courseId => $publicId) {
         echo "   Course ID {$courseId} -> {$publicId}\n";
     }
-    
+
     echo "\n2. Update database:\n";
     foreach($mapping as $courseId => $publicId) {
         $course = CourseDescription::find($courseId);
         if($course) {
             $oldImageUrl = $course->image_url;
-            
+
             // Pastikan public_id sudah dalam format courses/
             if(strpos($publicId, 'courses/') !== 0) {
                 $newImageUrl = 'courses/' . $publicId;
             } else {
                 $newImageUrl = $publicId;
             }
-            
+
             $course->image_url = $newImageUrl;
             $course->save();
-            
+
             echo "   ✓ Course ID {$courseId}: '{$oldImageUrl}' -> '{$newImageUrl}'\n";
-            
+
             // Test URL generation
             $testUrl = $cloudinaryService->getOptimizedUrl($newImageUrl);
             echo "     Test URL: {$testUrl}\n\n";
@@ -49,13 +49,13 @@ try {
             echo "   ❌ Course ID {$courseId} tidak ditemukan\n";
         }
     }
-    
+
     echo "3. Verifikasi hasil:\n";
     $courses = CourseDescription::all();
     foreach($courses as $course) {
         echo "   Course ID {$course->id}: {$course->title}\n";
         echo "     Image URL: {$course->image_url}\n";
-        
+
         // Generate final URL
         $finalUrl = $cloudinaryService->getOptimizedUrl($course->image_url, [
             'width' => 800,
@@ -66,7 +66,7 @@ try {
         ]);
         echo "     Final URL: {$finalUrl}\n\n";
     }
-    
+
 } catch(\Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
     echo "Trace: " . $e->getTraceAsString() . "\n";

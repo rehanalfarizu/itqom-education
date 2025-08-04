@@ -20,10 +20,10 @@ class PaymentController extends Controller
     public function __construct()
     {
         // Set Midtrans configuration
-        \Midtrans\Config::$serverKey = config('services.midtrans.server_key');
-        \Midtrans\Config::$isProduction = config('services.midtrans.is_production');
-        \Midtrans\Config::$isSanitized = true;
-        \Midtrans\Config::$is3ds = true;
+        Config::$serverKey = config('services.midtrans.server_key');
+        Config::$isProduction = config('services.midtrans.is_production');
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
     }
 
     /**
@@ -54,7 +54,7 @@ public function createSnapToken(Request $request)
             Log::info('Authenticated user info', [
                 'user_id' => $authUser->id,
                 'user_email' => $authUser->email,
-                'user_name' => $authUser->name ?? $authUser->fullname ?? 'Unknown'
+                'user_name' => $authUser->name ?? 'Unknown'
             ]);
 
             // CEK APAKAH USER ADA DI TABEL users_profile
@@ -494,7 +494,12 @@ public function checkPaymentStatus(Request $request, $orderId)
 
         try {
             // Check status from Midtrans
-            $status = \Midtrans\Transaction::status($orderId);
+            $status = Transaction::status($orderId);
+
+            // Convert to object if it's an array
+            if (is_array($status)) {
+                $status = (object) $status;
+            }
 
             Log::info(message: 'Payment status from Midtrans', context: [
                 'order_id' => $orderId,
@@ -522,9 +527,9 @@ public function checkPaymentStatus(Request $request, $orderId)
                     ]);
 
                     // Update current payment as failed due to duplicate
-                    DB::table(table: 'payments')
-                        ->where(column: 'order_id', operator: $orderId)
-                        ->update(values: [
+                    DB::table('payments')
+                        ->where('order_id', $orderId)
+                        ->update([
                             'status' => 'failed',
                             'transaction_id' => $status->transaction_id ?? null,
                             'payment_type' => $status->payment_type ?? null,
@@ -547,9 +552,9 @@ public function checkPaymentStatus(Request $request, $orderId)
             // ======= END VALIDASI DUPLIKAT =======
 
             // Update status in database
-            $updated = DB::table(table: 'payments')
-                ->where(column: 'order_id', operator: $orderId)
-                ->update(values: [
+            $updated = DB::table('payments')
+                ->where('order_id', $orderId)
+                ->update([
                     'status' => $mappedStatus,
                     'transaction_id' => $status->transaction_id ?? null,
                     'payment_type' => $status->payment_type ?? null,
@@ -572,7 +577,7 @@ public function checkPaymentStatus(Request $request, $orderId)
             }
 
             // Get course title for response
-            $course = DB::table('courses')->where(column: 'id', operator: $payment->course_id)->first();
+            $course = DB::table('course_description')->where('id', $payment->course_id)->first();
 
             return response()->json([
                 'success' => $mappedStatus === 'success',
@@ -641,7 +646,8 @@ public function checkPaymentStatus(Request $request, $orderId)
                 return;
             }
 
-            $userId = $userProfile->user_id;
+            // Use the user_profile_id directly or try to find corresponding user_id
+            $userId = $userProfile->user_id ?? $userProfileId;
 
             // Check if user_courses table exists
             if (!Schema::hasTable('user_courses')) {
@@ -719,13 +725,12 @@ public function checkPaymentStatus(Request $request, $orderId)
             if (!$userProfileId) {
                 return response()->json(['error' => 'User profile ID is required'], 400);
             }
-
             $payments = DB::table('payments')
-                      ->leftJoin('courses', 'payments.course_id', '=', 'courses.id')
-                      ->where('payments.user_profile_id', $userProfileId)
-                      ->select('payments.*', 'courses.title as course_title')
-                      ->orderBy('payments.created_at', 'desc')
-                      ->get();
+                          ->leftJoin('course_description', 'payments.course_id', '=', 'course_description.id')
+                          ->where('payments.user_profile_id', $userProfileId)
+                          ->select('payments.*', 'course_description.title as course_title')
+                          ->orderBy('payments.created_at', 'desc')
+                          ->get();
 
             // Group by course to identify duplicates
             $groupedPayments = $payments->groupBy('course_id');
@@ -819,13 +824,25 @@ public function checkPaymentStatus(Request $request, $orderId)
                 ->where('course_id', $courseId)
                 ->where('status', 'success')
                 ->first();
-
             // Check if user_courses table exists, if not assume no additional access
             $hasAccess = false;
             try {
                 if (Schema::hasTable('user_courses')) {
                     $hasAccess = DB::table('user_courses')
-                        ->where('user_id', $userProfileId)
+                        ->where('user_id', $user->id)
+                        ->where('course_id', $courseId)
+                        ->exists();
+                }
+            } catch (Exception $e) {
+                Log::warning('user_courses table check failed', ['error' => $e->getMessage()]);
+                $hasAccess = false;
+            }
+            // Check if user_courses table exists, if not assume no additional access
+            $hasAccess = false;
+            try {
+                if (Schema::hasTable('user_courses')) {
+                    $hasAccess = DB::table('user_courses')
+                        ->where('user_id', $user->id)
                         ->where('course_id', $courseId)
                         ->exists();
                 }
@@ -900,9 +917,8 @@ public function paymentFinish(Request $request)
             Log::warning('Payment not found in finish callback', ['order_id' => $orderId]);
             return redirect('/courses?error=payment_not_found');
         }
-
         // Get course info for redirect
-        $course = DB::table('courses')->where('id', $payment->course_id)->first();
+        $course = DB::table('course_description')->where('id', $payment->course_id)->first();
 
         // Redirect to payment result page with proper parameters
         $redirectUrl = '/payment/result?' . http_build_query([
