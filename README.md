@@ -408,8 +408,6 @@ Project ini dilisensikan under [MIT License](LICENSE) - lihat file LICENSE untuk
 - **Tailwind CSS** untuk styling yang efisien
 
 ## 📢 Follow Us
-# 📢 Follow Us
-
 | Nama | GitHub |
 |------|--------|
 | **Dimas Dwi Setyawan** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/DimsDwi) | 
