@@ -410,15 +410,15 @@ Project ini dilisensikan under [MIT License](LICENSE) - lihat file LICENSE untuk
 ## 📢 Follow Us
 # 📢 Follow Us
 
-| Nama | GitHub | Instagram |
-|------|--------|-----------|
-| **Dimas Dwi Setyawan** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/DimsDwi) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)](https://instagram.com/dimas_username) |
-| **Unzurna** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/KingEery) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)]([https://instagram.com/unzurna_username](https://instagram.com/unzurna)) |
-| **Rehan Alfarizi** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/rehanalfarizu) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)]([https://instagram.com/rehan_username](https://www.instagram.com/rehanalfarizi_/)) |
-| **Yafa Putra** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/yafaputra) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)]([https://instagram.com/yafa_username](https://www.instagram.com/yafa.nanda/)) |
-| **Albar** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/albarstring) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)]([https://instagram.com/albar_username](https://www.instagram.com/rz_albar/)) |
-| **Bregas** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/siBregas) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)]([https://instagram.com/bregas_username](https://www.instagram.com/dmsbregas/?igsh=Z3NrNWE2MnR3bHZ4#)) |
-| **Satrio** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/LazyYoow) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)]([https://instagram.com/satrio_username](https://www.instagram.com/satrio.rnr/) |
+| Nama | GitHub |
+|------|--------|
+| **Dimas Dwi Setyawan** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/DimsDwi) | 
+| **Unzurna** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/KingEery) |
+| **Rehan Alfarizi** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/rehanalfarizu) | 
+| **Yafa Putra** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/yafaputra) | 
+| **Albar** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/albarstring) | [
+| **Bregas** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/siBregas) | 
+| **Satrio** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/LazyYoow) | 
 ---
 
 **Built with ❤️ by ITQoM Team**
