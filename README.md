@@ -22,7 +22,7 @@ Platform ini telah di-deploy dan dapat diakses di:
 
 ### Backend
 - **Laravel** - PHP web application framework
-- **PHP 8.1+** - Server-side programming language
+- **PHP 8.4+** - Server-side programming language
 - **Apache** - Web server
 - **MySQL** - Database management (JawsDB)
 
