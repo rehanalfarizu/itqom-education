@@ -408,13 +408,6 @@ Project ini dilisensikan under [MIT License](LICENSE) - lihat file LICENSE untuk
 - **Tailwind CSS** untuk styling yang efisien
 
 ## 📢 Follow Us
-
-**name: "Unzurna"** url: https://github.com/KingEery
-**name: "Rehan Alfarizi"** url: https://github.com/rehanalfarizu
-**name: "Yafa Putra"** url: https://github.com/yafaputra
-**name: "Albar "** url: https://github.com/albarstring
-**name: "Bregas"** url: https://github.com/siBregas
-
 - **Dimas Dwi Setyawan** url: https://github.com/DimsDwi
 - **Unzurna** url: https://github.com/KingEery
 - **Rehan Alfarizi** url: https://github.com/rehanalfarizu
