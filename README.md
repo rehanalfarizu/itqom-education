@@ -1,4 +1,4 @@
-# ITQoM Platform 🎓
+# Itqom Education 🎓
 
 **ITQoM Platform** adalah platform education bootcamp yang menyediakan pembelajaran komprehensif seputar development, UI/UX design, fullstack development, dan berbagai teknologi modern lainnya.
 
