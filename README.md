@@ -408,20 +408,17 @@ Project ini dilisensikan under [MIT License](LICENSE) - lihat file LICENSE untuk
 - **Tailwind CSS** untuk styling yang efisien
 
 ## 📢 Follow Us
-Dimas Dwi Setyawan
-🔗 GitHub | 📷 Instagram
-Unzurna
-🔗 GitHub | 📷 Instagram
-Rehan Alfarizi
-🔗 GitHub | 📷 Instagram
-Yafa Putra
-🔗 GitHub | 📷 Instagram
-Albar
-🔗 GitHub | 📷 Instagram
-Bregas
-🔗 GitHub | 📷 Instagram
-Satrio
-🔗 GitHub | 📷 Instagram
+# 📢 Follow Us
+
+| Nama | GitHub | Instagram |
+|------|--------|-----------|
+| **Dimas Dwi Setyawan** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/DimsDwi) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)](https://instagram.com/dimas_username) |
+| **Unzurna** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/KingEery) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)](https://instagram.com/unzurna_username) |
+| **Rehan Alfarizi** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/rehanalfarizu) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)](https://instagram.com/rehan_username) |
+| **Yafa Putra** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/yafaputra) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)](https://instagram.com/yafa_username) |
+| **Albar** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/albarstring) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)](https://instagram.com/albar_username) |
+| **Bregas** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/siBregas) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)](https://instagram.com/bregas_username) |
+| **Satrio** | [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=flat&logo=github)](https://github.com/LazyYoow) | [![Instagram](https://img.shields.io/badge/-Instagram-E4405F?style=flat&logo=instagram&logoColor=white)](https://instagram.com/satrio_username) |
 ---
 
 **Built with ❤️ by ITQoM Team**
